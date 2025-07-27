@@ -12,19 +12,30 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
 
   const handleAuth = async () => {
-    setError(null)
+  setError(null)
 
-    const { error } = isLogin
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password })
+  if (isLogin) {
+    // LOGIN
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
     } else {
-      // After login or signup, check for username
       await checkUsernameAndRedirect()
     }
+  } else {
+    // SIGNUP
+    const { error } = await supabase.auth.signUp({ email, password })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      // 🔒 Do NOT try to check username here — user isn't confirmed yet
+      router.push('/check-email')
+    }
   }
+}
+
 
   const checkUsernameAndRedirect = async () => {
     const { data: { user } } = await supabase.auth.getUser()

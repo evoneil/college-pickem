@@ -21,27 +21,28 @@ export default function SetupUsername() {
     }
 
     setLoading(true)
+
     const {
-      data: { user }
+      data: { user },
+      error: userError
     } = await supabase.auth.getUser()
 
-    if (!user) {
-      setError('Not authenticated.')
+    if (!user || userError) {
+      setError('Authentication failed. Please log in again.')
       setLoading(false)
       return
     }
 
-    const { error } = await supabase.from('profiles').upsert(
-        {
-            id: user.id,
-            username: trimmed
-        },
-        { onConflict: 'id' } // ✅ this is valid for upsert
-        )
+    const result = await supabase
+      .from('profiles')
+      .upsert(
+        { id: user.id, username: trimmed },
+        { onConflict: 'id' }
+      )
 
-
-    if (error) {
-      setError(error.message)
+    if (result.error) {
+      console.error('Upsert error:', result.error)
+      setError(result.error.message || 'Something went wrong.')
     } else {
       router.push('/week/current')
     }
