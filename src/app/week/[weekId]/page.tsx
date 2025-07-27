@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import clsx from 'clsx'
 
 type Team = {
   id: string
@@ -71,14 +72,14 @@ export default function WeekPicks() {
       const { data: gameData, error: gameError } = await supabase
         .from('games')
         .select(`
-            id,
-            home_team_id,
-            away_team_id,
-            kickoff_time,
-            lock_time,
-            difficulty,
-            home_team:home_team_id (id, name, short_name, logo_url, color),
-            away_team:away_team_id (id, name, short_name, logo_url, color)
+          id,
+          home_team_id,
+          away_team_id,
+          kickoff_time,
+          lock_time,
+          difficulty,
+          home_team:home_team_id (id, name, short_name, logo_url, color),
+          away_team:away_team_id (id, name, short_name, logo_url, color)
         `)
         .eq('week_id', weekId)
 
@@ -90,8 +91,9 @@ export default function WeekPicks() {
       const { data: picksData } = await supabase
         .from('picks')
         .select('*')
-        .eq('user_id', uid)
+        .eq('user_id', uid) // ✅ Must be current user
         .in('game_id', gameIds)
+
 
       if (picksData) {
         const formatted = picksData.map((p) => ({
@@ -184,13 +186,12 @@ export default function WeekPicks() {
             Save Picks
           </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {games.map((game) => {
               const pick = draftPicks.find((p) => p.game_id === game.id)
               const selected_id = pick?.selected_team_id
               const isDoubleDown = pick?.double_down
               const isLocked = new Date() > new Date(game.lock_time)
-
 
               const date = new Date(game.kickoff_time)
               const dateStr = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
@@ -205,7 +206,7 @@ export default function WeekPicks() {
                     <span>{game.difficulty} PTS</span>
                   </div>
                   <div className="text-xs text-gray-500">
-                    {dateStr}, {timeStr}
+                    {dateStr}, {timeStr} {isLocked && '🔒'}
                   </div>
 
                   <div className="flex gap-2 mt-2">
@@ -213,7 +214,12 @@ export default function WeekPicks() {
                       <button
                         key={team.id}
                         onClick={() => updatePick(game.id, team.id)}
-                        className={`flex-1 flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all ${selected_id === team.id ? 'ring-2 ring-white' : ''}`}
+                        disabled={isLocked}
+                        className={clsx(
+                          'flex-1 flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all',
+                          selected_id === team.id && 'ring-2 ring-white',
+                          isLocked && 'opacity-50 cursor-not-allowed'
+                        )}
                         style={{ background: selected_id === team.id ? `radial-gradient(circle at center, ${team.color} 0%, #000000 100%)` : undefined }}
                       >
                         {team.logo_url && (
@@ -226,8 +232,15 @@ export default function WeekPicks() {
 
                   <button
                     onClick={() => toggleDoubleDown(game.id)}
-                    disabled={!selected_id}
-                    className={`w-full text-center mt-2 py-1.5 rounded-md text-xs uppercase tracking-wide font-medium transition-all ${isDoubleDown ? 'bg-white text-black' : 'bg-zinc-800 text-gray-300'}`}
+                    disabled={!selected_id || isLocked}
+                    className={clsx(
+                      'w-full text-center mt-2 py-1.5 rounded-md text-xs uppercase tracking-wide font-medium transition-all',
+                      isLocked
+                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                        : isDoubleDown
+                          ? 'bg-white text-black'
+                          : 'bg-zinc-800 text-gray-300'
+                    )}
                   >
                     Double Down
                   </button>
