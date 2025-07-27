@@ -210,40 +210,69 @@ export default function WeekPicks() {
                   </div>
 
                   <div className="flex gap-2 mt-2">
-                    {[game.away_team, game.home_team].map((team) => (
-                      <button
-                        key={team.id}
-                        onClick={() => updatePick(game.id, team.id)}
-                        disabled={isLocked}
-                        className={clsx(
-                          'flex-1 flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all',
-                          selected_id === team.id && 'ring-2 ring-white',
-                          isLocked && 'opacity-50 cursor-not-allowed'
-                        )}
-                        style={{ background: selected_id === team.id ? `radial-gradient(circle at center, ${team.color} 0%, #000000 100%)` : undefined }}
-                      >
-                        {team.logo_url && (
-                          <img src={team.logo_url} alt="" className="w-5 h-5 object-contain" />
-                        )}
-                        {team.name}
-                      </button>
-                    ))}
-                  </div>
+                    
+  {/* Away team button */}
+  <button
+    onClick={() => updatePick(game.id, game.away_team.id)}
+    disabled={isLocked}
+    className={clsx(
+      'flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
+      selected_id === game.away_team.id ? 'flex-[2]' : selected_id === game.home_team.id ? 'flex-[1]' : 'flex-1',
+      selected_id === game.away_team.id && 'ring-2 ring-white',
+      isLocked && 'opacity-50 cursor-not-allowed'
+    )}
+    style={{
+      background:
+        selected_id === game.away_team.id
+          ? `radial-gradient(circle at center, ${game.away_team.color} 0%, #000000 100%)`
+          : undefined,
+    }}
+  >
+    {game.away_team.logo_url && (
+      <img src={game.away_team.logo_url} alt="" className="w-10 h-10 object-contain" />
+    )}
+    {selected_id !== game.home_team.id && game.away_team.name}
+  </button>
+
+  {/* Home team button */}
+  <button
+    onClick={() => updatePick(game.id, game.home_team.id)}
+    disabled={isLocked}
+    className={clsx(
+      'flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
+      selected_id === game.home_team.id ? 'flex-[2]' : selected_id === game.away_team.id ? 'flex-[1]' : 'flex-1',
+      selected_id === game.home_team.id && 'ring-2 ring-white',
+      isLocked && 'opacity-50 cursor-not-allowed'
+    )}
+    style={{
+      background:
+        selected_id === game.home_team.id
+          ? `radial-gradient(circle at center, ${game.home_team.color} 0%, #000000 100%)`
+          : undefined,
+    }}
+  >
+    {game.home_team.logo_url && (
+      <img src={game.home_team.logo_url} alt="" className="w-10 h-10 object-contain" />
+    )}
+    {selected_id !== game.away_team.id && game.home_team.name}
+  </button>
+</div>
+
 
                   <button
-                    onClick={() => toggleDoubleDown(game.id)}
-                    disabled={!selected_id || isLocked}
-                    className={clsx(
-                      'w-full text-center mt-2 py-1.5 rounded-md text-xs uppercase tracking-wide font-medium transition-all',
-                      isLocked
-                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                        : isDoubleDown
-                          ? 'bg-white text-black'
-                          : 'bg-zinc-800 text-gray-300'
-                    )}
-                  >
-                    Double Down
-                  </button>
+  onClick={() => toggleDoubleDown(game.id)}
+  disabled={!selected_id || isLocked}
+  className={clsx(
+    'w-full text-center mt-2 py-1.5 rounded-md text-xs uppercase tracking-wide font-medium transition-all',
+    isLocked
+      ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+      : isDoubleDown
+        ? 'bg-[#BF1C1F] text-white'
+        : 'bg-zinc-800 text-gray-300'
+  )}
+>
+  {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
+</button>
                 </div>
               )
             })}

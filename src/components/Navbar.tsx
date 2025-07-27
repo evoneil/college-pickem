@@ -13,12 +13,10 @@ export default function Navbar() {
   const [currentWeek, setCurrentWeek] = useState<number | null>(null)
   const [username, setUsername] = useState<string | null>(null)
 
-  // Get current week and username
   useEffect(() => {
     getCurrentWeek().then(setCurrentWeek)
     getUsername().then(setUsername)
 
-    // Listen for login/logout changes
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         getUsername().then(setUsername)
@@ -41,7 +39,7 @@ export default function Navbar() {
       {/* Logo */}
       <div className="flex items-center space-x-2">
         <Image src="/logo.svg" alt="Logo" width={24} height={24} />
-        <span className="font-extrabold italic text-xl">LOGO</span>
+        <span className="font-extrabold italic text-xl">THEO</span>
       </div>
 
       {/* Desktop nav links */}
@@ -54,30 +52,31 @@ export default function Navbar() {
         <Link href="/leaderboard" className="hover:underline">
           Leaderboard
         </Link>
+        <Link href="/rules" className="hover:underline"> {/* ✅ added */}
+          Rules
+        </Link>
       </div>
 
       {/* Right side: Username/Login + Hamburger */}
-<div className="flex items-center space-x-4 text-sm">
-  {username ? (
-    <div className="hidden md:flex items-center space-x-3">
-      <span>{username}</span>
-      <button
-        onClick={handleLogout}
-        className="underline text-red-400 hover:text-red-300"
-      >
-        Logout
-      </button>
-    </div>
-  ) : (
-    <Link href="/login">Login</Link>
-  )}
+      <div className="flex items-center space-x-4 text-sm">
+        {username ? (
+          <div className="hidden md:flex items-center space-x-3">
+            <span>{username}</span>
+            <button
+              onClick={handleLogout}
+              className="underline text-red-400 hover:text-red-300"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link href="/login">Login</Link>
+        )}
 
-  {/* Hamburger toggle for mobile */}
-  <button onClick={() => setIsOpen(!isOpen)} className="md:hidden focus:outline-none">
-    {isOpen ? <X size={24} /> : <Menu size={24} />}
-  </button>
-</div>
-
+        <button onClick={() => setIsOpen(!isOpen)} className="md:hidden focus:outline-none">
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
 
       {/* Full-screen mobile menu */}
       {isOpen && (
@@ -89,6 +88,9 @@ export default function Navbar() {
           )}
           <Link href="/leaderboard" onClick={() => setIsOpen(false)} className="hover:underline">
             Leaderboard
+          </Link>
+          <Link href="/rules" onClick={() => setIsOpen(false)} className="hover:underline"> {/* ✅ added */}
+            Rules
           </Link>
           {username && (
             <>
