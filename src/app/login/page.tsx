@@ -21,7 +21,25 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push('/') // you can change this later to /picks or /dashboard
+      // After login or signup, check for username
+      await checkUsernameAndRedirect()
+    }
+  }
+
+  const checkUsernameAndRedirect = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.username) {
+      router.push('/week/current') // or your main page
+    } else {
+      router.push('/setup-username')
     }
   }
 

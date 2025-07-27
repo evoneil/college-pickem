@@ -1,0 +1,76 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
+
+export default function SetupUsername() {
+  const [username, setUsername] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    const trimmed = username.trim()
+
+    if (trimmed.length === 0 || trimmed.length > 30) {
+      setError('Username must be between 1 and 30 characters.')
+      return
+    }
+
+    setLoading(true)
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setError('Not authenticated.')
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabase.from('profiles').upsert(
+        {
+            id: user.id,
+            username: trimmed
+        },
+        { onConflict: 'id' } // ✅ this is valid for upsert
+        )
+
+
+    if (error) {
+      setError(error.message)
+    } else {
+      router.push('/week/current')
+    }
+
+    setLoading(false)
+  }
+
+  return (
+    <div className="max-w-md mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Choose a username</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          maxLength={30}
+          placeholder="Enter username"
+          className="w-full border rounded p-2"
+          required
+        />
+        {error && <p className="text-red-500">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        >
+          {loading ? 'Saving...' : 'Save Username'}
+        </button>
+      </form>
+    </div>
+  )
+}
