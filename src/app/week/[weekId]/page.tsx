@@ -81,7 +81,7 @@ export default function WeekPicks() {
           home_team:home_team_id (id, name, short_name, logo_url, color),
           away_team:away_team_id (id, name, short_name, logo_url, color)
         `)
-        .eq('week_id', weekId)
+        .eq('week', weekId)
 
       if (gameError || !gameData) return
       setGames(gameData as any)
@@ -210,7 +210,7 @@ export default function WeekPicks() {
                   </div>
 
                   <div className="flex gap-2 mt-2">
-                    
+
   {/* Away team button */}
   <button
     onClick={() => updatePick(game.id, game.away_team.id)}
