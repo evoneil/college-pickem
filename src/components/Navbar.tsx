@@ -64,7 +64,17 @@ export default function Navbar() {
       <div className="flex items-center space-x-4 text-sm">
         {username ? (
           <div className="hidden md:flex items-center space-x-3">
-            <span>{username}</span>
+            <div className="flex items-center space-x-2">
+              <Image
+                src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-user.svg"
+                alt="Profile Icon"
+                width={20}
+                height={20}
+                className="rounded-full"
+              />
+              <span>{username}</span>
+            </div>
+
             <button
               onClick={handleLogout}
               className="underline text-red-400 hover:text-red-300"
@@ -97,7 +107,17 @@ export default function Navbar() {
           </Link>
           {username && (
             <>
-              <span className="pt-2 text-lg">{username}</span>
+              <div className="flex items-center space-x-2 pt-2 text-lg">
+                <Image
+                  src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-user.svg"
+                  alt="Profile Icon"
+                  width={20}
+                  height={20}
+                  className="rounded-full"
+                />
+                <span>{username}</span>
+              </div>
+
               <button onClick={handleLogout} className="underline text-red-400 hover:text-red-300">
                 Logout
               </button>
