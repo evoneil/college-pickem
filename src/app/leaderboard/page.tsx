@@ -2,88 +2,90 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
 
-type Game = {
+type User = {
   id: string
-  week: number
-  difficulty: number
-  winner_id: string
+  username: string
 }
 
-type Pick = {
-  game_id: string
-  selected_team_id: string
-  double_down: boolean
+type Week = {
+  id: number
 }
 
-const USER_ID = 'dde997f5-9774-4bac-b3f9-98a8fb84e92c'
+type Row = {
+  username: string
+  weekScores: number[]
+  total: number
+}
 
-
-export default function Week1Score() {
-  const [score, setScore] = useState<number | null>(null)
+export default function Leaderboard() {
+  const [rows, setRows] = useState<Row[]>([])
+  const [weeks, setWeeks] = useState<Week[]>([])
 
   useEffect(() => {
-    const fetchWeek1Score = async () => {
-      // 1. Get all week 1 games
-      const { data: games, error: gamesError } = await supabase
-        .from('games')
-        .select('id, week, difficulty, winner_id')
-        .eq('week', 1)
+    const loadLeaderboard = async () => {
+      const { data: users } = await supabase.from('profiles').select('id, username')
+      const { data: weeksData } = await supabase.from('weeks').select('id').order('id')
 
-        console.log('GAMES', games)
-        console.log('GAMES ERROR', gamesError)
-        if (gamesError || !games || games.length === 0) {
-        console.warn('No games found or error occurred')
-        return
+      if (!users || !weeksData) return
+
+      setWeeks(weeksData)
+
+      const leaderboard: Row[] = []
+
+      for (const user of users) {
+        const weekScores: number[] = []
+
+        for (const week of weeksData) {
+          const score = await getUserScoreForWeek(user.id, week.id)
+          weekScores.push(score)
         }
 
-        console.log('Fetched game IDs:', games.map(g => g.id))
-
-      const gameIds = games.map((g) => g.id)
-
-      // 2. Get picks for that user & week
-      const { data: picks, error: picksError } = await supabase
-        .from('picks')
-        .select('game_id, selected_team_id, double_down')
-        .eq('user_id', USER_ID)
-        .in('game_id', gameIds)
-
-      if (picksError || !picks) {
-        console.error(picksError)
-        return
+        leaderboard.push({
+          username: user.username,
+          weekScores,
+          total: weekScores.reduce((a, b) => a + b, 0),
+        })
       }
 
-      // 3. Calculate score
-      let total = 0
-
-      for (const pick of picks) {
-        const game = games.find((g) => g.id === pick.game_id)
-        if (!game) continue
-
-        const correct = pick.selected_team_id === game.winner_id
-        const base = game.difficulty
-
-        if (correct) {
-          total += pick.double_down ? base * 2 : base
-        } else {
-          total += pick.double_down ? -base : 0
-        }
-      }
-
-      setScore(total)
+      setRows(leaderboard)
     }
 
-    fetchWeek1Score()
+    loadLeaderboard()
   }, [])
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold">Week 1 Score</h1>
-      {score !== null ? (
-        <p className="text-2xl mt-2">{score} points</p>
-      ) : (
-        <p>Loading score...</p>
-      )}
+    <div className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">🏆 Leaderboard</h1>
+      <div className="overflow-auto">
+        <table className="min-w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="text-left px-2 py-1 border-b border-zinc-700">User</th>
+              {weeks.map((w) => (
+                <th key={w.id} className="text-center px-2 py-1 border-b border-zinc-700">
+                  W{w.id}
+                </th>
+              ))}
+              <th className="text-center px-2 py-1 border-b border-zinc-700">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows
+              .sort((a, b) => b.total - a.total)
+              .map((row) => (
+                <tr key={row.username}>
+                  <td className="px-2 py-1 border-b border-zinc-800 font-semibold">{row.username}</td>
+                  {row.weekScores.map((s, i) => (
+                    <td key={i} className="text-center px-2 py-1 border-b border-zinc-800">{s}</td>
+                  ))}
+                  <td className="text-center px-2 py-1 border-b border-zinc-800 font-bold">{row.total}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
