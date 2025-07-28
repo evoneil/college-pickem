@@ -15,9 +15,10 @@ type Team = {
 type Game = {
   id: string
   difficulty: number
+  winner_id: string | null
+  kickoff_time: string
   home_team: Team
   away_team: Team
-  winner_id: string | null
 }
 
 type Pick = {
@@ -27,6 +28,7 @@ type Pick = {
 }
 
 type UserRow = {
+  id: string
   username: string
   picks: Pick[]
   total: number
@@ -35,15 +37,21 @@ type UserRow = {
 export default function WeeklyLeaderboard() {
   const [users, setUsers] = useState<UserRow[]>([])
   const [games, setGames] = useState<Game[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const uid = sessionData?.session?.user?.id ?? null
+      setCurrentUserId(uid)
+
       const { data: gameData } = await supabase
         .from('games')
         .select(`
           id,
           difficulty,
           winner_id,
+          kickoff_time,
           home_team:home_team_id (id, name, short_name, logo_url),
           away_team:away_team_id (id, name, short_name, logo_url)
         `)
@@ -59,6 +67,7 @@ export default function WeeklyLeaderboard() {
           id: g.id,
           difficulty: g.difficulty,
           winner_id: g.winner_id,
+          kickoff_time: g.kickoff_time,
           home_team: home,
           away_team: away,
         }
@@ -81,6 +90,7 @@ export default function WeeklyLeaderboard() {
         const score = await getUserScoreForWeek(user.id, 1)
 
         rows.push({
+          id: user.id,
           username: user.username,
           picks: picksData ?? [],
           total: score,
@@ -120,7 +130,7 @@ export default function WeeklyLeaderboard() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.username} className="hover:bg-zinc-800 transition">
+              <tr key={u.username} className="transition even:bg-zinc-900 odd:bg-zinc-950">
                 <td className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10">
                   {u.username}
                 </td>
@@ -131,9 +141,21 @@ export default function WeeklyLeaderboard() {
                   const pick = u.picks.find((p) => p.game_id === g.id)
                   if (!pick) {
                     return (
-                      <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">—</td>
+                      <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
+                        <div className="flex items-center justify-center w-8 h-8 mx-auto">
+                          <img
+                            src="https://via.placeholder.com/32x32/333333/aaaaaa?text=?"
+                            alt="No pick"
+                            className="w-8 h-8 opacity-50"
+                          />
+                        </div>
+                      </td>
                     )
                   }
+
+                  const isOwner = u.id === currentUserId
+                  const hasStarted = new Date() >= new Date(g.kickoff_time)
+                  const canReveal = isOwner || hasStarted
 
                   const pickedTeam =
                     g.home_team?.id === pick.selected_team_id
@@ -146,32 +168,39 @@ export default function WeeklyLeaderboard() {
                   const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
 
                   return (
-                    <td
-                      key={g.id}
-                      className="text-center px-3 py-2 border-b border-zinc-800"
-                    >
-                      <div className="flex flex-col items-center justify-center">
-                        <div
-                          className={clsx(
-                            'relative w-8 h-8 rounded-full flex items-center justify-center',
-                            isCorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-green-500 before:opacity-20',
-                            isIncorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-red-500 before:opacity-20'
-                          )}
-                        >
-                          {pickedTeam?.logo_url ? (
-                            <img
-                              src={pickedTeam.logo_url}
-                              alt={pickedTeam.name}
-                              className="w-full h-full object-contain relative z-10"
-                            />
-                          ) : (
-                            '❓'
+                    <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
+                      {canReveal ? (
+                        <div className="flex flex-col items-center justify-center">
+                          <div
+                            className={clsx(
+                              'relative w-8 h-8 rounded-full flex items-center justify-center',
+                              isCorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-green-500 before:opacity-20',
+                              isIncorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-red-500 before:opacity-20'
+                            )}
+                          >
+                            {pickedTeam?.logo_url ? (
+                              <img
+                                src={pickedTeam.logo_url}
+                                alt={pickedTeam.name}
+                                className="w-full h-full object-contain relative z-10"
+                              />
+                            ) : (
+                              '❓'
+                            )}
+                          </div>
+                          {pick.double_down && (
+                            <span className="text-xs text-red-500 font-bold mt-1">DD</span>
                           )}
                         </div>
-                        {pick.double_down === true && (
-                          <span className="text-xs text-red-500 font-bold mt-1">DD</span>
-                        )}
-                      </div>
+                      ) : (
+                        <div className="flex items-center justify-center w-8 h-8 mx-auto">
+                          <img
+                            src="https://via.placeholder.com/32x32/333333/aaaaaa?text=?"
+                            alt="Hidden pick"
+                            className="w-8 h-8 opacity-50"
+                          />
+                        </div>
+                      )}
                     </td>
                   )
                 })}
