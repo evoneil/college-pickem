@@ -3,17 +3,21 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
+import clsx from 'clsx'
 
 type Team = {
   id: string
   name: string
+  short_name: string
   logo_url: string
 }
 
 type Game = {
   id: string
+  difficulty: number
   home_team: Team
   away_team: Team
+  winner_id: string | null
 }
 
 type Pick = {
@@ -38,8 +42,10 @@ export default function Leaderboard() {
         .from('games')
         .select(`
           id,
-          home_team:home_team_id (id, name, logo_url),
-          away_team:away_team_id (id, name, logo_url)
+          difficulty,
+          winner_id,
+          home_team:home_team_id (id, name, short_name, logo_url),
+          away_team:away_team_id (id, name, short_name, logo_url)
         `)
         .eq('week', 1)
 
@@ -49,20 +55,16 @@ export default function Leaderboard() {
         const home = Array.isArray(g.home_team) ? g.home_team[0] : g.home_team
         const away = Array.isArray(g.away_team) ? g.away_team[0] : g.away_team
 
-        console.log("JOINED GAME", {
-          game_id: g.id,
-          home_team: home,
-          away_team: away,
-        })
-
         return {
           id: g.id,
+          difficulty: g.difficulty,
+          winner_id: g.winner_id,
           home_team: home,
           away_team: away,
         }
       })
 
-      setGames(unwrappedGames)
+      setGames(unwrappedGames.sort((a, b) => a.difficulty - b.difficulty))
 
       const { data: userData } = await supabase.from('profiles').select('id, username')
       if (!userData) return
@@ -77,11 +79,6 @@ export default function Leaderboard() {
           .in('game_id', unwrappedGames.map(g => g.id))
 
         const score = await getUserScoreForWeek(user.id, 1)
-
-        console.log("USER PICKS", {
-          username: user.username,
-          picks: picksData
-        })
 
         rows.push({
           username: user.username,
@@ -108,12 +105,15 @@ export default function Leaderboard() {
                 User
               </th>
               <th className="text-center px-3 py-2 border-b border-zinc-700">Total</th>
-              {games.map((g, i) => (
+              {games.map((g) => (
                 <th
                   key={g.id}
                   className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap"
                 >
-                  Game {i + 1}
+                  <div className="font-semibold text-sm">{g.difficulty} pts</div>
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    {g.home_team.short_name} @ {g.away_team.short_name}
+                  </div>
                 </th>
               ))}
             </tr>
@@ -142,29 +142,34 @@ export default function Leaderboard() {
                       ? g.away_team
                       : null
 
-                  if (!pickedTeam) {
-                    console.warn('❓ No match for selected_team_id', {
-                      game_id: g.id,
-                      selected_team_id: pick.selected_team_id,
-                      home_team: g.home_team,
-                      away_team: g.away_team,
-                    })
-                  }
+                  const isCorrect = g.winner_id && pick.selected_team_id === g.winner_id
+                  const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
 
                   return (
-                    <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
+                    <td
+                      key={g.id}
+                      className="text-center px-3 py-2 border-b border-zinc-800"
+                    >
                       <div className="flex flex-col items-center justify-center">
-                        {pickedTeam?.logo_url ? (
-                          <img
-                            src={pickedTeam.logo_url}
-                            alt={pickedTeam.name}
-                            className="w-8 h-8 object-contain mb-1"
-                          />
-                        ) : (
-                          '❓'
-                        )}
+                        <div
+                          className={clsx(
+                            'relative w-8 h-8 rounded-full flex items-center justify-center',
+                            isCorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-green-500 before:opacity-20',
+                            isIncorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-red-500 before:opacity-20'
+                          )}
+                        >
+                          {pickedTeam?.logo_url ? (
+                            <img
+                              src={pickedTeam.logo_url}
+                              alt={pickedTeam.name}
+                              className="w-full h-full object-contain relative z-10"
+                            />
+                          ) : (
+                            '❓'
+                          )}
+                        </div>
                         {pick.double_down === true && (
-                          <span className="text-xs text-red-500 font-bold">DD</span>
+                          <span className="text-xs text-red-500 font-bold mt-1">DD</span>
                         )}
                       </div>
                     </td>
