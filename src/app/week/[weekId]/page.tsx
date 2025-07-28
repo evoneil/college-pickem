@@ -185,17 +185,23 @@ export default function WeekPicks() {
         <div className="text-center text-red-500 font-semibold">You must be signed in to make picks.</div>
       ) : (
         <>
-          <div className="md:static sticky top-0 z-30 bg-black py-2">
+
+
+          <div className="md:static sticky top-0 z-30 bg-black py-3">
             <button
               onClick={savePicks}
               disabled={picksUnchanged}
-              className={`w-full py-2 rounded-lg font-bold text-white transition-colors ${
-                picksUnchanged ? 'bg-zinc-700 cursor-not-allowed' : 'bg-zinc-800 hover:bg-zinc-700'
-              }`}
+              className={`w-full py-3 rounded-lg transition-colors uppercase tracking-wide
+                  font-[var(--font-primary)] font-bold italic
+                  ${picksUnchanged
+                  ? 'bg-[#2C2A33] text-zinc-400 cursor-not-allowed'
+                  : 'bg-[#7162D7] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
+                }`}
             >
               Save Picks
             </button>
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {games.map((game) => {
@@ -210,7 +216,7 @@ export default function WeekPicks() {
 
               return (
                 <div key={game.id} className="bg-zinc-900 rounded-xl p-4 space-y-2">
-                  <div className="flex justify-between text-sm text-gray-400">
+                  <div className="flex justify-between font-[var(--font-primary)] text-lg text-white">
                     <span>
                       {game.away_team.name} @ {game.home_team.name}
                     </span>
@@ -226,22 +232,36 @@ export default function WeekPicks() {
                       onClick={() => updatePick(game.id, game.away_team.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
+                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
                         selected_id === game.away_team.id ? 'flex-[2]' : selected_id === game.home_team.id ? 'flex-[1]' : 'flex-1',
-                        selected_id === game.away_team.id && 'ring-2 ring-white',
+                        selected_id === game.away_team.id,
                         isLocked && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
                         background:
                           selected_id === game.away_team.id
-                            ? `radial-gradient(circle at center, ${game.away_team.color} 0%, #000000 100%)`
+                            ? `radial-gradient(circle at center, ${game.away_team.color} 0%,
+                            transparent 100%)`
                             : undefined,
                       }}
                     >
-                      {game.away_team.logo_url && (
-                        <img src={game.away_team.logo_url} alt="" className="w-10 h-10 object-contain" />
+                      {/* Fade overlay (only shows if selected) */}
+                      {selected_id === game.away_team.id && (
+                        <div
+                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(to top, #121115, transparent)',
+                          }}
+                        />
                       )}
-                      {selected_id !== game.home_team.id && game.away_team.name}
+
+                      {/* Content */}
+                      {game.away_team.logo_url && (
+                        <img src={game.away_team.logo_url} alt="" className="w-10 h-10 object-contain z-10" />
+                      )}
+                      {selected_id !== game.home_team.id && (
+                        <span className="z-10">{game.away_team.name}</span>
+                      )}
                     </button>
 
                     {/* Home team button */}
@@ -249,24 +269,37 @@ export default function WeekPicks() {
                       onClick={() => updatePick(game.id, game.home_team.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
+                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
                         selected_id === game.home_team.id ? 'flex-[2]' : selected_id === game.away_team.id ? 'flex-[1]' : 'flex-1',
-                        selected_id === game.home_team.id && 'ring-2 ring-white',
+                        selected_id === game.home_team.id,
                         isLocked && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
                         background:
                           selected_id === game.home_team.id
-                            ? `radial-gradient(circle at center, ${game.home_team.color} 0%, #000000 100%)`
+                            ? `radial-gradient(circle at center, ${game.home_team.color} 0%, transparent 100%)`
                             : undefined,
                       }}
                     >
-                      {game.home_team.logo_url && (
-                        <img src={game.home_team.logo_url} alt="" className="w-10 h-10 object-contain" />
+                      {/* Fade overlay */}
+                      {selected_id === game.home_team.id && (
+                        <div
+                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(to top, #121115, transparent)',
+                          }}
+                        />
                       )}
-                      {selected_id !== game.away_team.id && game.home_team.name}
+
+                      {game.home_team.logo_url && (
+                        <img src={game.home_team.logo_url} alt="" className="w-10 h-10 object-contain z-10" />
+                      )}
+                      {selected_id !== game.away_team.id && (
+                        <span className="z-10">{game.home_team.name}</span>
+                      )}
                     </button>
                   </div>
+
 
                   <button
                     onClick={() => toggleDoubleDown(game.id)}
@@ -276,8 +309,8 @@ export default function WeekPicks() {
                       isLocked
                         ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
                         : isDoubleDown
-                        ? 'bg-[#BF1C1F] text-white'
-                        : 'bg-zinc-800 text-gray-300'
+                          ? 'bg-[#BF1C1F] text-white'
+                          : 'bg-zinc-800 text-gray-300'
                     )}
                   >
                     {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}

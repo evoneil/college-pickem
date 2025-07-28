@@ -3,6 +3,7 @@
 import type { Metadata } from 'next'
 import { usePathname } from 'next/navigation'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Titillium_Web } from 'next/font/google'
 import './globals.css'
 
 import Navbar from '@/components/Navbar'
@@ -17,6 +18,14 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const titillium = Titillium_Web({
+  variable: '--font-primary',
+  subsets: ['latin'],
+  weight: '700',
+  style: 'italic',
+  display: 'swap',
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0E0E10] text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} ${titillium.variable} antialiased bg-[#0E0E10] text-white`}
       >
         {!hideNavbar && <Navbar />}
         <main>{children}</main>
