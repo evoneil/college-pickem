@@ -4,85 +4,174 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
 
-type User = {
+type Team = {
   id: string
-  username: string
+  name: string
+  logo_url: string
 }
 
-type Week = {
-  id: number
+type Game = {
+  id: string
+  home_team: Team
+  away_team: Team
 }
 
-type Row = {
+type Pick = {
+  game_id: string
+  selected_team_id: string
+  double_down: boolean
+}
+
+type UserRow = {
   username: string
-  weekScores: number[]
+  picks: Pick[]
   total: number
 }
 
 export default function Leaderboard() {
-  const [rows, setRows] = useState<Row[]>([])
-  const [weeks, setWeeks] = useState<Week[]>([])
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [games, setGames] = useState<Game[]>([])
 
   useEffect(() => {
-    const loadLeaderboard = async () => {
-      const { data: users } = await supabase.from('profiles').select('id, username')
-      const { data: weeksData } = await supabase.from('weeks').select('id').order('id')
+    const load = async () => {
+      const { data: gameData } = await supabase
+        .from('games')
+        .select(`
+          id,
+          home_team:home_team_id (id, name, logo_url),
+          away_team:away_team_id (id, name, logo_url)
+        `)
+        .eq('week', 1)
 
-      if (!users || !weeksData) return
+      if (!gameData) return
 
-      setWeeks(weeksData)
+      const unwrappedGames: Game[] = gameData.map((g: any) => {
+        const home = Array.isArray(g.home_team) ? g.home_team[0] : g.home_team
+        const away = Array.isArray(g.away_team) ? g.away_team[0] : g.away_team
 
-      const leaderboard: Row[] = []
+        console.log("JOINED GAME", {
+          game_id: g.id,
+          home_team: home,
+          away_team: away,
+        })
 
-      for (const user of users) {
-        const weekScores: number[] = []
-
-        for (const week of weeksData) {
-          const score = await getUserScoreForWeek(user.id, week.id)
-          weekScores.push(score)
+        return {
+          id: g.id,
+          home_team: home,
+          away_team: away,
         }
+      })
 
-        leaderboard.push({
+      setGames(unwrappedGames)
+
+      const { data: userData } = await supabase.from('profiles').select('id, username')
+      if (!userData) return
+
+      const rows: UserRow[] = []
+
+      for (const user of userData) {
+        const { data: picksData } = await supabase
+          .from('picks')
+          .select('game_id, selected_team_id, double_down')
+          .eq('user_id', user.id)
+          .in('game_id', unwrappedGames.map(g => g.id))
+
+        const score = await getUserScoreForWeek(user.id, 1)
+
+        console.log("USER PICKS", {
           username: user.username,
-          weekScores,
-          total: weekScores.reduce((a, b) => a + b, 0),
+          picks: picksData
+        })
+
+        rows.push({
+          username: user.username,
+          picks: picksData ?? [],
+          total: score,
         })
       }
 
-      setRows(leaderboard)
+      setUsers(rows)
     }
 
-    loadLeaderboard()
+    load()
   }, [])
 
   return (
     <div className="p-6 text-white">
-      <h1 className="text-2xl font-bold mb-4">🏆 Leaderboard</h1>
-      <div className="overflow-auto">
-        <table className="min-w-full border-collapse">
-          <thead>
+      <h1 className="text-2xl font-bold mb-6">🏈 Week 1 Leaderboard</h1>
+
+      <div className="overflow-auto rounded-xl border border-zinc-800">
+        <table className="min-w-full table-auto text-sm">
+          <thead className="bg-zinc-900">
             <tr>
-              <th className="text-left px-2 py-1 border-b border-zinc-700">User</th>
-              {weeks.map((w) => (
-                <th key={w.id} className="text-center px-2 py-1 border-b border-zinc-700">
-                  W{w.id}
+              <th className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-700 z-10 text-left">
+                User
+              </th>
+              <th className="text-center px-3 py-2 border-b border-zinc-700">Total</th>
+              {games.map((g, i) => (
+                <th
+                  key={g.id}
+                  className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap"
+                >
+                  Game {i + 1}
                 </th>
               ))}
-              <th className="text-center px-2 py-1 border-b border-zinc-700">Total</th>
             </tr>
           </thead>
           <tbody>
-            {rows
-              .sort((a, b) => b.total - a.total)
-              .map((row) => (
-                <tr key={row.username}>
-                  <td className="px-2 py-1 border-b border-zinc-800 font-semibold">{row.username}</td>
-                  {row.weekScores.map((s, i) => (
-                    <td key={i} className="text-center px-2 py-1 border-b border-zinc-800">{s}</td>
-                  ))}
-                  <td className="text-center px-2 py-1 border-b border-zinc-800 font-bold">{row.total}</td>
-                </tr>
-              ))}
+            {users.map((u) => (
+              <tr key={u.username} className="hover:bg-zinc-800 transition">
+                <td className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10">
+                  {u.username}
+                </td>
+                <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">
+                  {u.total}
+                </td>
+                {games.map((g) => {
+                  const pick = u.picks.find((p) => p.game_id === g.id)
+                  if (!pick) {
+                    return (
+                      <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">—</td>
+                    )
+                  }
+
+                  const pickedTeam =
+                    g.home_team?.id === pick.selected_team_id
+                      ? g.home_team
+                      : g.away_team?.id === pick.selected_team_id
+                      ? g.away_team
+                      : null
+
+                  if (!pickedTeam) {
+                    console.warn('❓ No match for selected_team_id', {
+                      game_id: g.id,
+                      selected_team_id: pick.selected_team_id,
+                      home_team: g.home_team,
+                      away_team: g.away_team,
+                    })
+                  }
+
+                  return (
+                    <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
+                      <div className="flex flex-col items-center justify-center">
+                        {pickedTeam?.logo_url ? (
+                          <img
+                            src={pickedTeam.logo_url}
+                            alt={pickedTeam.name}
+                            className="w-8 h-8 object-contain mb-1"
+                          />
+                        ) : (
+                          '❓'
+                        )}
+                        {pick.double_down === true && (
+                          <span className="text-xs text-red-500 font-bold">DD</span>
+                        )}
+                      </div>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 
 export async function getUserScoreForWeek(userId: string, week: number): Promise<number> {
+    
   // 1. Get all games from that week
   const { data: games } = await supabase
     .from('games')
