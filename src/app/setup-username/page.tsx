@@ -1,14 +1,43 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import { getCurrentWeek } from '@/lib/getCurrentWeek'
 
 export default function SetupUsername() {
   const [username, setUsername] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  // ✅ Redirect based on session + profile
+  useEffect(() => {
+    const enforceCorrectFlow = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.replace('/login')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profile?.username) {
+        const currentWeekId = await getCurrentWeek()
+        if (currentWeekId) {
+          router.replace(`/week/${currentWeekId}`)
+        } else {
+          router.replace('/login')
+        }
+      }
+    }
+
+    enforceCorrectFlow()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,7 +53,7 @@ export default function SetupUsername() {
 
     const {
       data: { user },
-      error: userError
+      error: userError,
     } = await supabase.auth.getUser()
 
     if (!user || userError) {
@@ -35,16 +64,18 @@ export default function SetupUsername() {
 
     const result = await supabase
       .from('profiles')
-      .upsert(
-        { id: user.id, username: trimmed },
-        { onConflict: 'id' }
-      )
+      .upsert({ id: user.id, username: trimmed }, { onConflict: 'id' })
 
     if (result.error) {
       console.error('Upsert error:', result.error)
       setError(result.error.message || 'Something went wrong.')
     } else {
-      router.push('/week/current')
+      const currentWeekId = await getCurrentWeek()
+      if (currentWeekId) {
+        router.push(`/week/${currentWeekId}`)
+      } else {
+        router.push('/login')
+      }
     }
 
     setLoading(false)

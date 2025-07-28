@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import WeeklyLeaderboard from '@/components/WeeklyLeaderboard'
 import OverallLeaderboard from '@/components/OverallLeaderboard'
+import AuthGate from '@/components/AuthGate'
 import clsx from 'clsx'
 
 export default function LeaderboardPage() {

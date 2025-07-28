@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import { getUsername } from '@/lib/getUsername'
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [currentWeek, setCurrentWeek] = useState<number | null>(null)
   const [username, setUsername] = useState<string | null>(null)
+  const router = useRouter() // ✅ Added
 
   useEffect(() => {
     getCurrentWeek().then(setCurrentWeek)
@@ -32,6 +34,7 @@ export default function Navbar() {
     await supabase.auth.signOut()
     setUsername(null)
     setIsOpen(false)
+    router.replace('/login') // ✅ Added
   }
 
   return (
@@ -52,7 +55,7 @@ export default function Navbar() {
         <Link href="/leaderboard" className="hover:underline">
           Leaderboard
         </Link>
-        <Link href="/rules" className="hover:underline"> {/* ✅ added */}
+        <Link href="/rules" className="hover:underline">
           Rules
         </Link>
       </div>
@@ -89,7 +92,7 @@ export default function Navbar() {
           <Link href="/leaderboard" onClick={() => setIsOpen(false)} className="hover:underline">
             Leaderboard
           </Link>
-          <Link href="/rules" onClick={() => setIsOpen(false)} className="hover:underline"> {/* ✅ added */}
+          <Link href="/rules" onClick={() => setIsOpen(false)} className="hover:underline">
             Rules
           </Link>
           {username && (

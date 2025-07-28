@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
 
-export default function HomeRedirect() {
+export default function PostAuthCheck() {
   const router = useRouter()
 
   useEffect(() => {
-    const redirect = async () => {
+    const check = async () => {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (!session) {
@@ -35,7 +35,7 @@ export default function HomeRedirect() {
       }
     }
 
-    redirect()
+    check()
   }, [router])
 
   return null

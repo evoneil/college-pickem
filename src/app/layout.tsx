@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const pathname = usePathname()
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/check-email') || pathname.startsWith('/setup-username')
 
   return (
     <html lang="en">

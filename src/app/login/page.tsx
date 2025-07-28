@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -12,30 +12,36 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
 
   const handleAuth = async () => {
-  setError(null)
+    setError(null)
 
-  if (isLogin) {
-    // LOGIN
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (isLogin) {
+      // 🔐 LOGIN FLOW
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+      } else {
+        await checkUsernameAndRedirect()
+      }
     } else {
-      await checkUsernameAndRedirect()
-    }
-  } else {
-    // SIGNUP
-    const { error } = await supabase.auth.signUp({ email, password })
+      // ✉️ SIGNUP FLOW WITH REDIRECT TO /setup-username AFTER EMAIL CONFIRMATION
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${location.origin}/post-auth-check`,
+        },
+      })
 
-    if (error) {
-      setError(error.message)
-    } else {
-      // 🔒 Do NOT try to check username here — user isn't confirmed yet
-      router.push('/check-email')
+
+
+      if (error) {
+        setError(error.message)
+      } else {
+        router.push('/check-email')
+      }
     }
   }
-}
-
 
   const checkUsernameAndRedirect = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -48,7 +54,7 @@ export default function LoginPage() {
       .single()
 
     if (profile?.username) {
-      router.push('/week/current') // or your main page
+      router.push('/week/current')
     } else {
       router.push('/setup-username')
     }
