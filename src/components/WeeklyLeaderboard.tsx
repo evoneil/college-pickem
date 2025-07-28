@@ -143,11 +143,7 @@ export default function WeeklyLeaderboard() {
                     return (
                       <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
                         <div className="flex items-center justify-center w-8 h-8 mx-auto">
-                          <img
-                            src="https://via.placeholder.com/32x32/333333/aaaaaa?text=?"
-                            alt="No pick"
-                            className="w-8 h-8 opacity-50"
-                          />
+                          -
                         </div>
                       </td>
                     )
@@ -195,7 +191,7 @@ export default function WeeklyLeaderboard() {
                       ) : (
                         <div className="flex items-center justify-center w-8 h-8 mx-auto">
                           <img
-                            src="https://via.placeholder.com/32x32/333333/aaaaaa?text=?"
+                            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-hidden.svg"
                             alt="Hidden pick"
                             className="w-8 h-8 opacity-50"
                           />
