@@ -176,7 +176,7 @@ export default function WeekPicks() {
       <h1 className="text-xl font-bold">WEEK {weekId} PICKS</h1>
 
       {showToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md z-50 transition-opacity">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md z-50 transition-opacity">
           ✅ Picks Saved!
         </div>
       )}
