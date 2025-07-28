@@ -1,6 +1,7 @@
 'use client'
 
 import type { Metadata } from 'next'
+import { usePathname } from 'next/navigation'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -16,16 +17,20 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const pathname = usePathname()
+  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/signup')
+
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0E0E10] text-white`}>
-        <Navbar />
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0E0E10] text-white`}
+      >
+        {!hideNavbar && <Navbar />}
         <main>{children}</main>
       </body>
     </html>

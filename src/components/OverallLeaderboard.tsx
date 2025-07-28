@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import clsx from 'clsx'
 
 export default function OverallLeaderboard() {
   const [users, setUsers] = useState<{ username: string; total: number }[]>([])
@@ -40,36 +41,53 @@ export default function OverallLeaderboard() {
       }
 
       rows.sort((a, b) => b.total - a.total)
-
       setUsers(rows)
     }
 
     load()
   }, [])
 
+  const getRankStyle = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-yellow-400 text-black'
+      case 2:
+        return 'bg-blue-200 text-black'
+      case 3:
+        return 'bg-orange-400 text-black'
+      default:
+        return 'bg-neutral-700 text-white'
+    }
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">📊 Overall Leaderboard</h1>
 
-      <div className="overflow-auto rounded-xl border border-zinc-800">
-        <table className="min-w-full table-auto text-sm">
-          <thead className="bg-zinc-900">
-            <tr>
-              <th className="px-3 py-2 border-b border-zinc-700 text-left">Rank</th>
-              <th className="px-3 py-2 border-b border-zinc-700 text-left">User</th>
-              <th className="px-3 py-2 border-b border-zinc-700 text-center">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u, i) => (
-              <tr key={u.username} className="hover:bg-zinc-800 transition">
-                <td className="px-3 py-2 border-b border-zinc-800">{i + 1}</td>
-                <td className="px-3 py-2 border-b border-zinc-800 font-medium">{u.username}</td>
-                <td className="px-3 py-2 border-b border-zinc-800 text-center font-semibold">{u.total}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-2">
+        {users.map((u, i) => (
+          <div
+            key={u.username}
+            className="bg-neutral-800 rounded-xl px-4 py-3 flex items-start justify-between"
+          >
+            <div className="flex items-start gap-3">
+              <div
+                className={clsx(
+                  'text-sm font-bold px-2 py-1 rounded',
+                  getRankStyle(i + 1)
+                )}
+              >
+                {i + 1}
+              </div>
+              <p className="text-white text-sm leading-snug break-words max-w-xs sm:max-w-sm">
+                {u.username}
+              </p>
+            </div>
+            <div className="text-white font-bold italic text-sm tracking-wide whitespace-nowrap">
+              {u.total} PTS
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
