@@ -34,9 +34,15 @@ type UserRow = {
   total: number
 }
 
-export default function WeeklyLeaderboard() {
+type Props = {
+  weekId: number
+}
+
+export default function WeeklyLeaderboard({ weekId }: Props) {
   const [users, setUsers] = useState<UserRow[]>([])
   const [games, setGames] = useState<Game[]>([])
+  const [weeks, setWeeks] = useState<{ id: number }[]>([])
+  const [selectedWeekId, setSelectedWeekId] = useState<number>(weekId)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -44,6 +50,9 @@ export default function WeeklyLeaderboard() {
       const { data: sessionData } = await supabase.auth.getSession()
       const uid = sessionData?.session?.user?.id ?? null
       setCurrentUserId(uid)
+
+      const { data: weeksData } = await supabase.from('weeks').select('id').order('id')
+      if (weeksData) setWeeks(weeksData)
 
       const { data: gameData } = await supabase
         .from('games')
@@ -55,7 +64,7 @@ export default function WeeklyLeaderboard() {
           home_team:home_team_id (id, name, short_name, logo_url),
           away_team:away_team_id (id, name, short_name, logo_url)
         `)
-        .eq('week', 1)
+        .eq('week', selectedWeekId)
 
       if (!gameData) return
 
@@ -87,7 +96,7 @@ export default function WeeklyLeaderboard() {
           .eq('user_id', user.id)
           .in('game_id', unwrappedGames.map(g => g.id))
 
-        const score = await getUserScoreForWeek(user.id, 1)
+        const score = await getUserScoreForWeek(user.id, selectedWeekId)
 
         rows.push({
           id: user.id,
@@ -108,25 +117,35 @@ export default function WeeklyLeaderboard() {
     }
 
     load()
-  }, [])
+  }, [selectedWeekId])
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">🏈 Week 1 Leaderboard</h1>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {weeks.map((w) => (
+          <button
+            key={w.id}
+            onClick={() => setSelectedWeekId(w.id)}
+            className={clsx(
+              'px-3 py-1 rounded-full text-sm font-medium transition border',
+              selectedWeekId === w.id
+                ? 'bg-white text-black border-white'
+                : 'bg-zinc-800 text-white border-zinc-600 hover:bg-zinc-700'
+            )}
+          >
+            Week {w.id}
+          </button>
+        ))}
+      </div>
 
       <div className="overflow-auto rounded-xl border border-zinc-800">
         <table className="min-w-full table-auto text-sm">
           <thead className="bg-zinc-900">
             <tr>
-              <th className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-700 z-10 text-left">
-                User
-              </th>
+              <th className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-700 z-10 text-left">User</th>
               <th className="text-center px-3 py-2 border-b border-zinc-700">Total</th>
               {games.map((g) => (
-                <th
-                  key={g.id}
-                  className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap"
-                >
+                <th key={g.id} className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap">
                   <div className="font-semibold text-sm">{g.difficulty} pts</div>
                   <div className="text-xs text-gray-400 mt-0.5">
                     {g.home_team.short_name} @ {g.away_team.short_name}
@@ -150,9 +169,7 @@ export default function WeeklyLeaderboard() {
                     {u.username}
                     {isCurrentUser && ' (you)'}
                   </td>
-                  <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">
-                    {u.total}
-                  </td>
+                  <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">{u.total}</td>
                   {games.map((g) => {
                     const pick = u.picks.find((p) => p.game_id === g.id)
                     const hasStarted = new Date() >= new Date(g.kickoff_time)
