@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import AuthGate from '@/components/AuthGate'
+import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import clsx from 'clsx'
 
 type Team = {
@@ -172,13 +173,23 @@ function WeekPicks() {
     }
   }
 
-  if (weekLocked) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xl text-center">This week is not available yet.</p>
-      </div>
-    )
-  }
+ if (weekLocked) {
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+      <p className="text-xl text-center">This week is not available yet.</p>
+      <button
+        onClick={async () => {
+          const currentWeek = await getCurrentWeek()
+          router.push(`/week/${currentWeek}`)
+        }}
+        className="px-4 py-2 rounded-md bg-white text-black font-semibold hover:bg-zinc-200 transition"
+      >
+        Go to current week
+      </button>
+    </div>
+  )
+}
+
 
   return (
     <div className="min-h-screen bg-black text-white p-4 space-y-6">

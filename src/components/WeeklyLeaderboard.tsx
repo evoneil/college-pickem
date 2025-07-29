@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
+import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import clsx from 'clsx'
 
 type Team = {
@@ -44,6 +45,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
   const [weeks, setWeeks] = useState<{ id: number }[]>([])
   const [selectedWeekId, setSelectedWeekId] = useState<number>(weekId)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentWeekId, setCurrentWeekId] = useState<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -51,8 +53,21 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
       const uid = sessionData?.session?.user?.id ?? null
       setCurrentUserId(uid)
 
-      const { data: weeksData } = await supabase.from('weeks').select('id').order('id')
+      const [weekFromDB, { data: weeksData }] = await Promise.all([
+        getCurrentWeek(),
+        supabase.from('weeks').select('id').order('id')
+      ])
+      setCurrentWeekId(weekFromDB)
       if (weeksData) setWeeks(weeksData)
+
+      if (weeksData) {
+        const currentIndex = weeksData.findIndex(w => w.id === weekFromDB)
+        const [currentWeek] = weeksData.splice(currentIndex, 1)
+
+        const reversed = weeksData.sort((a, b) => b.id - a.id)
+        setWeeks([currentWeek, ...reversed])
+      }
+
 
       const { data: gameData } = await supabase
         .from('games')
@@ -108,9 +123,9 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
       const sortedRows = uid
         ? [
-            ...rows.filter((u) => u.id === uid),
-            ...rows.filter((u) => u.id !== uid),
-          ]
+          ...rows.filter((u) => u.id === uid),
+          ...rows.filter((u) => u.id !== uid),
+        ]
         : rows
 
       setUsers(sortedRows)
@@ -121,21 +136,23 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-2">
-        {weeks.map((w) => (
-          <button
-            key={w.id}
-            onClick={() => setSelectedWeekId(w.id)}
-            className={clsx(
-              'px-3 py-1 rounded-full text-sm font-medium transition border',
-              selectedWeekId === w.id
-                ? 'bg-white text-black border-white'
-                : 'bg-zinc-800 text-white border-zinc-600 hover:bg-zinc-700'
-            )}
-          >
-            Week {w.id}
-          </button>
-        ))}
+      <div className="mb-4 overflow-x-auto">
+        <div className="flex gap-2 min-w-max px-1 mb-4">
+          {weeks.map((w) => (
+            <button
+              key={w.id}
+              onClick={() => setSelectedWeekId(w.id)}
+              className={clsx(
+                'px-3 py-1 rounded-full text-sm font-medium transition border whitespace-nowrap',
+                selectedWeekId === w.id
+                  ? 'bg-white text-black border-white'
+                  : 'bg-zinc-800 text-white border-zinc-600 hover:bg-zinc-700'
+              )}
+            >
+              {currentWeekId === w.id ? `This week (${w.id})` : `Week ${w.id}`}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-auto rounded-xl border border-zinc-800">
@@ -201,8 +218,8 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                       g.home_team?.id === pick.selected_team_id
                         ? g.home_team
                         : g.away_team?.id === pick.selected_team_id
-                        ? g.away_team
-                        : null
+                          ? g.away_team
+                          : null
 
                     const isCorrect = g.winner_id && pick.selected_team_id === g.winner_id
                     const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
@@ -221,7 +238,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                               <img
                                 src={pickedTeam.logo_url}
                                 alt={pickedTeam.name}
-                                className="w-full h-full object-contain relative z-10"
+                                className="w-full h-full object-contain relative z-8"
                               />
                             ) : (
                               '❓'

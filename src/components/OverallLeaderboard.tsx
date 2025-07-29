@@ -87,7 +87,7 @@ export default function OverallLeaderboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">📊 Overall Leaderboard</h1>
+      <h1 className="text-2xl font-bold mb-6">Overall Leaderboard</h1>
 
       <div className="space-y-2">
         {users.map((u) => {
