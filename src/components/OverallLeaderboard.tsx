@@ -4,15 +4,27 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import clsx from 'clsx'
 
+type UserRow = {
+  id: string
+  username: string
+  total: number
+  rank: number
+}
+
 export default function OverallLeaderboard() {
-  const [users, setUsers] = useState<{ username: string; total: number }[]>([])
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const uid = sessionData?.session?.user?.id ?? null
+      setCurrentUserId(uid)
+
       const { data: userData } = await supabase.from('profiles').select('id, username')
       if (!userData) return
 
-      const rows: { username: string; total: number }[] = []
+      const rows: Omit<UserRow, 'rank'>[] = []
 
       for (const user of userData) {
         const { data: picks } = await supabase
@@ -37,11 +49,24 @@ export default function OverallLeaderboard() {
           }
         }
 
-        rows.push({ username: user.username, total })
+        rows.push({ id: user.id, username: user.username, total })
       }
 
-      rows.sort((a, b) => b.total - a.total)
-      setUsers(rows)
+      // Sort and assign ranks before bumping current user
+      const ranked = rows
+        .sort((a, b) => b.total - a.total)
+        .map((u, i) => ({ ...u, rank: i + 1 }))
+
+      // Move current user to top (without affecting their rank)
+      const sorted =
+        uid !== null
+          ? [
+              ...ranked.filter((u) => u.id === uid),
+              ...ranked.filter((u) => u.id !== uid),
+            ]
+          : ranked
+
+      setUsers(sorted)
     }
 
     load()
@@ -65,29 +90,37 @@ export default function OverallLeaderboard() {
       <h1 className="text-2xl font-bold mb-6">📊 Overall Leaderboard</h1>
 
       <div className="space-y-2">
-        {users.map((u, i) => (
-          <div
-            key={u.username}
-            className="bg-neutral-800 rounded-xl px-4 py-3 flex items-start justify-between"
-          >
-            <div className="flex items-start gap-3">
-              <div
-                className={clsx(
-                  'text-sm font-bold px-2 py-1 rounded',
-                  getRankStyle(i + 1)
-                )}
-              >
-                {i + 1}
+        {users.map((u) => {
+          const isCurrentUser = u.id === currentUserId
+
+          return (
+            <div
+              key={u.id}
+              className={clsx(
+                'rounded-xl px-4 py-3 flex items-start justify-between transition',
+                isCurrentUser ? 'bg-zinc-800/50' : 'bg-neutral-800'
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={clsx(
+                    'text-sm font-bold px-2 py-1 rounded',
+                    getRankStyle(u.rank)
+                  )}
+                >
+                  {u.rank}
+                </div>
+                <p className="text-white text-sm leading-snug break-words max-w-xs sm:max-w-sm">
+                  {u.username}
+                  {isCurrentUser && ' (you)'}
+                </p>
               </div>
-              <p className="text-white text-sm leading-snug break-words max-w-xs sm:max-w-sm">
-                {u.username}
-              </p>
+              <div className="text-white font-bold italic text-sm tracking-wide whitespace-nowrap">
+                {u.total} PTS
+              </div>
             </div>
-            <div className="text-white font-bold italic text-sm tracking-wide whitespace-nowrap">
-              {u.total} PTS
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

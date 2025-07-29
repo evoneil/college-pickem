@@ -97,7 +97,14 @@ export default function WeeklyLeaderboard() {
         })
       }
 
-      setUsers(rows)
+      const sortedRows = uid
+        ? [
+            ...rows.filter((u) => u.id === uid),
+            ...rows.filter((u) => u.id !== uid),
+          ]
+        : rows
+
+      setUsers(sortedRows)
     }
 
     load()
@@ -129,43 +136,62 @@ export default function WeeklyLeaderboard() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
-              <tr key={u.username} className="transition even:bg-zinc-900 odd:bg-zinc-950">
-                <td className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10">
-                  {u.username}
-                </td>
-                <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">
-                  {u.total}
-                </td>
-                {games.map((g) => {
-                  const pick = u.picks.find((p) => p.game_id === g.id)
-                  if (!pick) {
+            {users.map((u) => {
+              const isCurrentUser = u.id === currentUserId
+              return (
+                <tr
+                  key={u.username}
+                  className={clsx(
+                    'transition even:bg-zinc-900 odd:bg-zinc-950',
+                    isCurrentUser && 'bg-zinc-800/50'
+                  )}
+                >
+                  <td className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10">
+                    {u.username}
+                    {isCurrentUser && ' (you)'}
+                  </td>
+                  <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">
+                    {u.total}
+                  </td>
+                  {games.map((g) => {
+                    const pick = u.picks.find((p) => p.game_id === g.id)
+                    const hasStarted = new Date() >= new Date(g.kickoff_time)
+                    const canReveal = isCurrentUser || hasStarted
+
+                    if (!canReveal) {
+                      return (
+                        <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
+                          <div className="flex items-center justify-center w-8 h-8 mx-auto">
+                            <img
+                              src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-hidden.svg"
+                              alt="Hidden pick"
+                              className="w-8 h-8 opacity-50"
+                            />
+                          </div>
+                        </td>
+                      )
+                    }
+
+                    if (!pick) {
+                      return (
+                        <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
+                          <div className="flex items-center justify-center w-8 h-8 mx-auto">-</div>
+                        </td>
+                      )
+                    }
+
+                    const pickedTeam =
+                      g.home_team?.id === pick.selected_team_id
+                        ? g.home_team
+                        : g.away_team?.id === pick.selected_team_id
+                        ? g.away_team
+                        : null
+
+                    const isCorrect = g.winner_id && pick.selected_team_id === g.winner_id
+                    const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
+
                     return (
                       <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
-                        <div className="flex items-center justify-center w-8 h-8 mx-auto">
-                          -
-                        </div>
-                      </td>
-                    )
-                  }
-
-                  const isOwner = u.id === currentUserId
-                  const hasStarted = new Date() >= new Date(g.kickoff_time)
-                  const canReveal = isOwner || hasStarted
-
-                  const pickedTeam =
-                    g.home_team?.id === pick.selected_team_id
-                      ? g.home_team
-                      : g.away_team?.id === pick.selected_team_id
-                      ? g.away_team
-                      : null
-
-                  const isCorrect = g.winner_id && pick.selected_team_id === g.winner_id
-                  const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
-
-                  return (
-                    <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
-                      {canReveal ? (
                         <div className="flex flex-col items-center justify-center">
                           <div
                             className={clsx(
@@ -188,20 +214,12 @@ export default function WeeklyLeaderboard() {
                             <span className="text-xs text-red-500 font-bold mt-1">DD</span>
                           )}
                         </div>
-                      ) : (
-                        <div className="flex items-center justify-center w-8 h-8 mx-auto">
-                          <img
-                            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-hidden.svg"
-                            alt="Hidden pick"
-                            className="w-8 h-8 opacity-50"
-                          />
-                        </div>
-                      )}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

@@ -1,15 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import WeeklyLeaderboard from '@/components/WeeklyLeaderboard'
 import OverallLeaderboard from '@/components/OverallLeaderboard'
+import { supabase } from '@/lib/supabaseClient'
 import AuthGate from '@/components/AuthGate'
 import clsx from 'clsx'
 
 export default function LeaderboardPage() {
   const [view, setView] = useState<'weekly' | 'overall'>('weekly')
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user?.id) setUserId(session.user.id)
+    }
+
+    getUser()
+  }, [])
 
   return (
+    <AuthGate>
     <div className="p-6 text-white">
       <div className="mb-6 flex gap-2">
         <button
@@ -36,7 +48,12 @@ export default function LeaderboardPage() {
         </button>
       </div>
 
-      {view === 'weekly' ? <WeeklyLeaderboard /> : <OverallLeaderboard />}
+     {view === 'weekly'
+  ? <WeeklyLeaderboard />
+  : <OverallLeaderboard />}
+
+
     </div>
+    </AuthGate>
   )
 }

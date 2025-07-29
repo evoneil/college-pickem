@@ -13,7 +13,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [currentWeek, setCurrentWeek] = useState<number | null>(null)
   const [username, setUsername] = useState<string | null>(null)
-  const router = useRouter() // ✅ Added
+  const router = useRouter()
 
   useEffect(() => {
     getCurrentWeek().then(setCurrentWeek)
@@ -34,7 +34,7 @@ export default function Navbar() {
     await supabase.auth.signOut()
     setUsername(null)
     setIsOpen(false)
-    router.replace('/login') // ✅ Added
+    router.replace('/login')
   }
 
   return (
@@ -60,10 +60,10 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* Right side: Username/Login + Hamburger */}
+      {/* Right side: Username + Logout + Hamburger */}
       <div className="flex items-center space-x-4 text-sm">
         {username ? (
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <Image
                 src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-user.svg"
@@ -77,7 +77,7 @@ export default function Navbar() {
 
             <button
               onClick={handleLogout}
-              className="underline text-red-400 hover:text-red-300"
+              className="hidden md:inline underline text-red-400 hover:text-red-300"
             >
               Logout
             </button>
@@ -86,12 +86,13 @@ export default function Navbar() {
           <Link href="/login">Login</Link>
         )}
 
+        {/* Hamburger (mobile only) */}
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden focus:outline-none">
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Full-screen mobile menu */}
+      {/* Mobile menu (fullscreen overlay) */}
       {isOpen && (
         <div className="fixed inset-0 z-40 bg-[#18171C] text-white md:hidden flex flex-col items-center justify-center space-y-6 text-xl">
           {currentWeek && (
@@ -106,22 +107,9 @@ export default function Navbar() {
             Rules
           </Link>
           {username && (
-            <>
-              <div className="flex items-center space-x-2 pt-2 text-lg">
-                <Image
-                  src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-user.svg"
-                  alt="Profile Icon"
-                  width={20}
-                  height={20}
-                  className="rounded-full"
-                />
-                <span>{username}</span>
-              </div>
-
-              <button onClick={handleLogout} className="underline text-red-400 hover:text-red-300">
-                Logout
-              </button>
-            </>
+            <button onClick={handleLogout} className="underline text-red-400 hover:text-red-300">
+              Logout
+            </button>
           )}
         </div>
       )}
