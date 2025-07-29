@@ -267,7 +267,7 @@ function WeekPicks() {
                         <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none" style={{ background: 'linear-gradient(to top, #121115, transparent)' }} />
                       )}
                       {game.away_team.logo_url && <img src={game.away_team.logo_url} alt="" className="w-10 h-10 object-contain z-10" />}
-                      {selected_id !== game.home_team.id && <span className="z-10">{game.away_team.name}</span>}
+                      {selected_id !== game.home_team.id && <span className="z-10">{game.away_team.short_name}</span>}
                     </button>
 
                     {/* Home Team Button */}
@@ -289,7 +289,7 @@ function WeekPicks() {
                         <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none" style={{ background: 'linear-gradient(to top, #121115, transparent)' }} />
                       )}
                       {game.home_team.logo_url && <img src={game.home_team.logo_url} alt="" className="w-10 h-10 object-contain z-10" />}
-                      {selected_id !== game.away_team.id && <span className="z-10">{game.home_team.name}</span>}
+                      {selected_id !== game.away_team.id && <span className="z-10">{game.home_team.short_name}</span>}
                     </button>
                   </div>
 
