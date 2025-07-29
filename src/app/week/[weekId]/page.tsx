@@ -173,56 +173,61 @@ function WeekPicks() {
     }
   }
 
- if (weekLocked) {
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
-      <p className="text-xl text-center">This week is not available yet.</p>
-      <button
-        onClick={async () => {
-          const currentWeek = await getCurrentWeek()
-          router.push(`/week/${currentWeek}`)
-        }}
-        className="px-4 py-2 rounded-md bg-white text-black font-semibold hover:bg-zinc-200 transition"
-      >
-        Go to current week
-      </button>
-    </div>
-  )
-}
+  if (weekLocked) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+        <p className="text-xl text-center">This week is not available yet.</p>
+        <button
+          onClick={async () => {
+            const currentWeek = await getCurrentWeek()
+            router.push(`/week/${currentWeek}`)
+          }}
+          className="px-4 py-2 rounded-md bg-white text-black font-semibold hover:bg-zinc-200 transition"
+        >
+          Go to current week
+        </button>
+      </div>
+    )
+  }
 
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 space-y-6">
-      <h1 className="text-xl font-bold">WEEK {weekId} PICKS</h1>
+  <div className="min-h-screen bg-black text-white p-4 space-y-6">
+    {showToast && (
+      <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-2 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
+        <img
+          src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
+          alt="Picks Saved"
+          className="w-6 h-6"
+        />
+        <span>Picks Saved</span>
+      </div>
+    )}
 
-      {showToast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 rounded-xl border-2 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
-          <img
-            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
-            alt="Picks Saved"
-            className="w-6 h-6"
-          />
-          <span>Picks Saved</span>
-        </div>
-      )}
-
-      {!userId ? (
-        <div className="text-center text-red-500 font-semibold">You must be signed in to make picks.</div>
-      ) : (
-        <>
-          <div className="md:static sticky top-0 z-30 bg-black py-3">
+    {!userId ? (
+      <div className="text-center text-red-500 font-semibold">
+        You must be signed in to make picks.
+      </div>
+    ) : (
+      <>
+        <div className="sticky top-0 z-30 bg-black py-3">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+            <h1 className="text-xl font-bold">WEEK {weekId} PICKS</h1>
             <button
               onClick={savePicks}
               disabled={picksUnchanged}
-              className={`w-full py-3 rounded-lg transition-colors uppercase tracking-wide font-[var(--font-primary)] font-bold italic ${
+              className={clsx(
+                'w-full md:w-auto px-6 py-3 rounded-lg transition-colors uppercase tracking-wide font-[var(--font-primary)] font-bold italic',
                 picksUnchanged
                   ? 'bg-[#2C2A33] text-zinc-400 cursor-not-allowed'
                   : 'bg-[#7162D7] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
-              }`}
+              )}
             >
               Save Picks
             </button>
           </div>
+        </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {games.map((game) => {

@@ -22,7 +22,7 @@ const titillium = Titillium_Web({
   variable: '--font-primary',
   subsets: ['latin'],
   weight: '700',
-  style: 'italic',
+  // style: 'italic',
   display: 'swap',
 })
 

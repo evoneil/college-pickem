@@ -163,7 +163,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
               <th className="text-center px-3 py-2 border-b border-zinc-700">Total</th>
               {games.map((g) => (
                 <th key={g.id} className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap">
-                  <div className="font-semibold text-sm">{g.difficulty} pts</div>
+                  <div className="font-semibold text-sm">{g.difficulty} PT</div>
                   <div className="text-xs text-gray-400 mt-0.5">
                     {g.home_team.short_name} @ {g.away_team.short_name}
                   </div>
