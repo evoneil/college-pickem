@@ -125,16 +125,13 @@ function CurrentWeekPicks() {
     setDraftPicks((prev) => {
       const existing = prev.find((p) => p.game_id === game_id)
       if (existing) {
-        // Clicking same team again = deselect
-        if (existing.selected_team_id === selected_team_id) {
-          return prev.map((p) =>
-            p.game_id === game_id ? { ...p, selected_team_id: '', double_down: false } : p
-          )
-        }
+        // Always update selection to the clicked team, even if it's already selected
         return prev.map((p) =>
-          p.game_id === game_id ? { ...p, selected_team_id } : p
+          p.game_id === game_id ? { ...p, selected_team_id, double_down: false } : p
         )
-      } else {
+      }
+
+      else {
         return [...prev, { game_id, selected_team_id, double_down: false }]
       }
     })
@@ -186,7 +183,7 @@ function CurrentWeekPicks() {
   return (
     <div className="min-h-screen bg-black text-white p-4 space-y-6">
       {showToast && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-2 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-1 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
           <img
             src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
             alt="Picks Saved"
@@ -209,10 +206,10 @@ function CurrentWeekPicks() {
                 onClick={savePicks}
                 disabled={picksUnchanged}
                 className={clsx(
-                  'w-full md:w-auto px-6 py-3 rounded-lg transition-colors uppercase tracking-wide font-[var(--font-primary)] font-bold italic',
+                  'w-full md:w-auto px-6 py-3 rounded-lg transition-colors border text-s',
                   picksUnchanged
-                    ? 'bg-[#2C2A33] text-zinc-400 cursor-not-allowed'
-                    : 'bg-[#7162D7] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
+                    ? 'bg-[#2C2A33] text-zinc-400 border-[#3f3f46] cursor-not-allowed'
+                    : 'bg-[#212048] border-[#9996FF] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
                 )}
               >
                 Save Picks
@@ -232,14 +229,14 @@ function CurrentWeekPicks() {
               const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 
               return (
-                <div key={game.id} className="bg-zinc-900 rounded-xl p-4 space-y-2">
-                  <div className="flex justify-between font-[var(--font-primary)] text-lg text-white">
+                <div key={game.id} className="bg-zinc-900 border border-[#3f3f46] rounded-xl p-4 space-y-2">
+                  <div className="flex justify-between text-lg font-bold text-white">
                     <span>
                       {game.away_team.name} @ {game.home_team.name}
                     </span>
                     <span>{game.difficulty} PTS</span>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-s pb-2 text-gray-500">
                     {dateStr}, {timeStr} {isLocked && '🔒'}
                   </div>
 
@@ -249,56 +246,105 @@ function CurrentWeekPicks() {
                       onClick={() => updatePick(game.id, game.away_team.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
-                        selected_id === game.away_team.id ? 'flex-[2]' : selected_id === game.home_team.id ? 'flex-[1]' : 'flex-1',
+                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all overflow-hidden',
+                        selected_id === game.away_team.id
+                          ? 'flex-[2]'
+                          : selected_id === game.home_team.id
+                            ? 'flex-[1]'
+                            : 'flex-1',
                         isLocked && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
-                        background: selected_id === game.away_team.id
-                          ? `radial-gradient(circle at center, ${game.away_team.color} 0%, transparent 100%)`
-                          : undefined,
+                        background:
+                          selected_id === game.away_team.id
+                            ? `radial-gradient(circle at center, ${game.away_team.color} 0%, transparent 100%)`
+                            : undefined,
+                        border: `1px solid ${selected_id === game.away_team.id
+                          ? game.away_team.color
+                          : '#3f3f46' // fallback border color (zinc-700)
+                          }`,
                       }}
                     >
                       {selected_id === game.away_team.id && (
-                        <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none" style={{ background: 'linear-gradient(to top, #121115, transparent)' }} />
+                        <div
+                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                          style={{ background: 'linear-gradient(to top, #121115, transparent)' }}
+                        />
                       )}
-                      {game.away_team.logo_url && <img src={game.away_team.logo_url} alt="" className="w-10 h-10 object-contain z-10" />}
-                      {selected_id !== game.home_team.id && <span className="z-10">{game.away_team.short_name}</span>}
+                      {game.away_team.logo_url && (
+                        <img
+                          src={game.away_team.logo_url}
+                          alt=""
+                          className="w-10 h-10 object-contain z-10"
+                        />
+                      )}
+                      {selected_id !== game.home_team.id && (
+                        <span className="z-10">{game.away_team.short_name}</span>
+                      )}
                     </button>
+
 
                     {/* Home Button */}
                     <button
                       onClick={() => updatePick(game.id, game.home_team.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white border border-zinc-700 transition-all overflow-hidden',
-                        selected_id === game.home_team.id ? 'flex-[2]' : selected_id === game.away_team.id ? 'flex-[1]' : 'flex-1',
+                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all overflow-hidden',
+                        selected_id === game.home_team.id
+                          ? 'flex-[2]'
+                          : selected_id === game.away_team.id
+                            ? 'flex-[1]'
+                            : 'flex-1',
                         isLocked && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
-                        background: selected_id === game.home_team.id
-                          ? `radial-gradient(circle at center, ${game.home_team.color} 0%, transparent 100%)`
-                          : undefined,
+                        background:
+                          selected_id === game.home_team.id
+                            ? `radial-gradient(circle at center, ${game.home_team.color} 0%, transparent 100%)`
+                            : undefined,
+                        border: `1px solid ${selected_id === game.home_team.id
+                          ? game.home_team.color
+                          : '#3f3f46' // fallback border color (zinc-700)
+                          }`,
                       }}
                     >
                       {selected_id === game.home_team.id && (
-                        <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none" style={{ background: 'linear-gradient(to top, #121115, transparent)' }} />
+                        <div
+                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                          style={{ background: 'linear-gradient(to top, #121115, transparent)' }}
+                        />
                       )}
-                      {game.home_team.logo_url && <img src={game.home_team.logo_url} alt="" className="w-10 h-10 object-contain z-10" />}
-                      {selected_id !== game.away_team.id && <span className="z-10">{game.home_team.short_name}</span>}
+                      {game.home_team.logo_url && (
+                        <img
+                          src={game.home_team.logo_url}
+                          alt=""
+                          className="w-10 h-10 object-contain z-10"
+                        />
+                      )}
+                      {selected_id !== game.away_team.id && (
+                        <span className="z-10">{game.home_team.short_name}</span>
+                      )}
                     </button>
+
                   </div>
 
-                  <button
-                    onClick={() => toggleDoubleDown(game.id)}
-                    disabled={!selected_id || isLocked}
-                    className={clsx(
-                      'w-full text-center mt-2 py-2.5 rounded-md text-xs uppercase tracking-wide font-medium transition-all',
-                      isLocked ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' : isDoubleDown ? 'bg-[#BF1C1F] text-white' : 'bg-zinc-800 text-gray-300'
-                    )}
-                  >
-                    {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
-                  </button>
+                  {selected_id && (
+                    <button
+                      onClick={() => toggleDoubleDown(game.id)}
+                      disabled={isLocked}
+                      className={clsx(
+                        'w-full text-center mt-2 py-2.5 border border-[#3f3f46] rounded-md text-s uppercase tracking-wide font-medium transition-all',
+                        isLocked
+                          ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                          : isDoubleDown
+                            ? 'bg-[#43151C] text-white border-[#CE152E]'
+                            : 'bg-zinc-800 text-gray-300'
+                      )}
+                    >
+                      {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
+                    </button>
+                  )}
+
                 </div>
               )
             })}
