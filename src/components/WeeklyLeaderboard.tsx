@@ -66,10 +66,10 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
         const filtered = ENABLE_WEEK_FILTERING
           ? weeksData.filter((week) => {
-              const start = new Date(week.start_date)
-              const end = new Date(week.end_date)
-              return (now >= start && now <= end) || now > end
-            })
+            const start = new Date(week.start_date)
+            const end = new Date(week.end_date)
+            return (now >= start && now <= end) || now > end
+          })
           : weeksData
 
         const currentIndex = filtered.findIndex((w) => w.id === weekFromDB)
@@ -132,9 +132,9 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
       const sortedRows = uid
         ? [
-            ...rows.filter((u) => u.id === uid),
-            ...rows.filter((u) => u.id !== uid),
-          ]
+          ...rows.filter((u) => u.id === uid),
+          ...rows.filter((u) => u.id !== uid),
+        ]
         : rows
 
       setUsers(sortedRows)
@@ -234,8 +234,8 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                       g.home_team?.id === pick.selected_team_id
                         ? g.home_team
                         : g.away_team?.id === pick.selected_team_id
-                        ? g.away_team
-                        : null
+                          ? g.away_team
+                          : null
 
                     const isCorrect = g.winner_id && pick.selected_team_id === g.winner_id
                     const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
@@ -243,29 +243,39 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                     return (
                       <td key={g.id} className="text-center px-3 py-2 border-b border-zinc-800">
                         <div className="flex flex-col items-center justify-center">
-                          <div
-                            className={clsx(
-                              'relative w-8 h-8 rounded-full flex items-center justify-center',
-                              isCorrect &&
-                                'before:absolute before:inset-0 before:rounded-full before:bg-green-500 before:opacity-20',
-                              isIncorrect &&
-                                'before:absolute before:inset-0 before:rounded-full before:bg-red-500 before:opacity-20'
+                          <div className="flex items-center justify-center relative w-10 h-10">
+                            {/* Glow behind logo */}
+                            {(isCorrect || isIncorrect) && (
+                              <div
+                                className={clsx(
+                                  'absolute w-6 h-6 rounded-full blur-md z-0',
+                                  'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+                                  isCorrect && 'bg-[#34BB61]',
+                                  isIncorrect && 'bg-[#FF4B4E]'
+                                )}
+                              />
                             )}
-                          >
+
+                            {/* Logo */}
                             {pickedTeam?.logo_url ? (
                               <img
                                 src={pickedTeam.logo_url}
                                 alt={pickedTeam.name}
-                                className="w-full h-full object-contain relative z-8"
+                                className="w-full h-full object-contain relative z-10"
                               />
                             ) : (
                               '❓'
                             )}
+
+                            {/* DD tag */}
+                            {pick.double_down && (
+                              <span className="absolute -right-4 top-1/2 -translate-y-1/2 text-[10px] text-white rounded font-bold z-20">
+                                DD
+                              </span>
+                            )}
                           </div>
-                          {pick.double_down && (
-                            <span className="text-xs text-red-500 font-bold mt-1">DD</span>
-                          )}
                         </div>
+
                       </td>
                     )
                   })}

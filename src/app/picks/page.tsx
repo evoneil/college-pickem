@@ -41,7 +41,6 @@ export default function PicksPage() {
 function CurrentWeekPicks() {
   const router = useRouter()
   const [currentWeekId, setCurrentWeekId] = useState<number | null>(null)
-
   const [games, setGames] = useState<Game[]>([])
   const [draftPicks, setDraftPicks] = useState<PickDraft[]>([])
   const [originalPicks, setOriginalPicks] = useState<PickDraft[]>([])
@@ -50,6 +49,11 @@ function CurrentWeekPicks() {
   const [weekLocked, setWeekLocked] = useState(false)
 
   const picksUnchanged = JSON.stringify(draftPicks) === JSON.stringify(originalPicks)
+
+  const doubleDownLocked = draftPicks.some((pick) => {
+    const game = games.find((g) => g.id === pick.game_id)
+    return pick.double_down && game && new Date(game.lock_time) <= new Date()
+  })
 
   useEffect(() => {
     const init = async () => {
@@ -125,28 +129,38 @@ function CurrentWeekPicks() {
     setDraftPicks((prev) => {
       const existing = prev.find((p) => p.game_id === game_id)
       if (existing) {
-        // Always update selection to the clicked team, even if it's already selected
         return prev.map((p) =>
           p.game_id === game_id ? { ...p, selected_team_id, double_down: false } : p
         )
-      }
-
-      else {
+      } else {
         return [...prev, { game_id, selected_team_id, double_down: false }]
       }
     })
   }
 
-  const toggleDoubleDown = (game_id: string) => {
-    setDraftPicks((prev) => {
-      return prev.map((p) => {
-        if (p.game_id === game_id) {
-          return { ...p, double_down: !p.double_down }
-        } else {
-          return { ...p, double_down: false }
-        }
-      })
+  const toggleDoubleDown = (gameId: string) => {
+    const now = new Date()
+
+    const selectedGame = games.find((g) => g.id === gameId)
+    if (!selectedGame) return
+
+    const isSelectedGameLocked = new Date(selectedGame.lock_time) <= now
+
+    const lockedDoubleDown = draftPicks.find((p) => {
+      const game = games.find((g) => g.id === p.game_id)
+      return p.double_down && game && new Date(game.lock_time) <= now
     })
+
+    if (lockedDoubleDown && lockedDoubleDown.game_id !== gameId) return
+    if (lockedDoubleDown && lockedDoubleDown.game_id === gameId && isSelectedGameLocked) return
+
+    setDraftPicks((prev) =>
+      prev.map((p) =>
+        p.game_id === gameId
+          ? { ...p, double_down: !p.double_down }
+          : { ...p, double_down: false }
+      )
+    )
   }
 
   const savePicks = async () => {
@@ -241,7 +255,6 @@ function CurrentWeekPicks() {
                   </div>
 
                   <div className="flex gap-2 mt-2">
-                    {/* Away Button */}
                     <button
                       onClick={() => updatePick(game.id, game.away_team.id)}
                       disabled={isLocked}
@@ -261,7 +274,7 @@ function CurrentWeekPicks() {
                             : undefined,
                         border: `1px solid ${selected_id === game.away_team.id
                           ? game.away_team.color
-                          : '#3f3f46' // fallback border color (zinc-700)
+                          : '#3f3f46'
                           }`,
                       }}
                     >
@@ -283,8 +296,6 @@ function CurrentWeekPicks() {
                       )}
                     </button>
 
-
-                    {/* Home Button */}
                     <button
                       onClick={() => updatePick(game.id, game.home_team.id)}
                       disabled={isLocked}
@@ -304,7 +315,7 @@ function CurrentWeekPicks() {
                             : undefined,
                         border: `1px solid ${selected_id === game.home_team.id
                           ? game.home_team.color
-                          : '#3f3f46' // fallback border color (zinc-700)
+                          : '#3f3f46'
                           }`,
                       }}
                     >
@@ -325,20 +336,18 @@ function CurrentWeekPicks() {
                         <span className="z-10">{game.home_team.short_name}</span>
                       )}
                     </button>
-
                   </div>
 
-                  {selected_id && (
+                  {selected_id && (!doubleDownLocked || isDoubleDown) && (
                     <button
                       onClick={() => toggleDoubleDown(game.id)}
-                      disabled={isLocked}
+                      disabled={isLocked && !isDoubleDown}
                       className={clsx(
-                        'w-full text-center mt-2 py-2.5 border border-[#3f3f46] rounded-md text-s uppercase tracking-wide font-medium transition-all',
-                        isLocked
-                          ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                          : isDoubleDown
-                            ? 'bg-[#43151C] text-white border-[#CE152E]'
-                            : 'bg-zinc-800 text-gray-300'
+                        'w-full text-center mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all',
+                        isDoubleDown
+                          ? 'bg-[#43151C] text-white border-[#CE152E]'
+                          : 'bg-zinc-800 text-gray-300 border-[#3f3f46]',
+                        isLocked && !isDoubleDown && 'cursor-not-allowed opacity-50'
                       )}
                     >
                       {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
