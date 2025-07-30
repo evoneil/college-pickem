@@ -186,14 +186,6 @@ function CurrentWeekPicks() {
     }
   }
 
-  if (weekLocked) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
-        <p className="text-xl text-center">This week is not available yet.</p>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-black text-white p-4 space-y-6">
       {showToast && (
@@ -231,7 +223,7 @@ function CurrentWeekPicks() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-6">
             {games.map((game) => {
               const pick = draftPicks.find((p) => p.game_id === game.id)
               const selected_id = pick?.selected_team_id
