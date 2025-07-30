@@ -6,6 +6,8 @@ import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import clsx from 'clsx'
 
+const ENABLE_WEEK_FILTERING = true // Toggle this on/off to filter out future weeks
+
 type Team = {
   id: string
   name: string
@@ -55,19 +57,26 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
       const [weekFromDB, { data: weeksData }] = await Promise.all([
         getCurrentWeek(),
-        supabase.from('weeks').select('id').order('id')
+        supabase.from('weeks').select('id, start_date, end_date').order('id'),
       ])
       setCurrentWeekId(weekFromDB)
-      if (weeksData) setWeeks(weeksData)
 
       if (weeksData) {
-        const currentIndex = weeksData.findIndex(w => w.id === weekFromDB)
-        const [currentWeek] = weeksData.splice(currentIndex, 1)
+        const now = new Date()
 
-        const reversed = weeksData.sort((a, b) => b.id - a.id)
+        const filtered = ENABLE_WEEK_FILTERING
+          ? weeksData.filter((week) => {
+              const start = new Date(week.start_date)
+              const end = new Date(week.end_date)
+              return (now >= start && now <= end) || now > end
+            })
+          : weeksData
+
+        const currentIndex = filtered.findIndex((w) => w.id === weekFromDB)
+        const [currentWeek] = filtered.splice(currentIndex, 1)
+        const reversed = filtered.sort((a, b) => b.id - a.id)
         setWeeks([currentWeek, ...reversed])
       }
-
 
       const { data: gameData } = await supabase
         .from('games')
@@ -109,7 +118,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
           .from('picks')
           .select('game_id, selected_team_id, double_down')
           .eq('user_id', user.id)
-          .in('game_id', unwrappedGames.map(g => g.id))
+          .in('game_id', unwrappedGames.map((g) => g.id))
 
         const score = await getUserScoreForWeek(user.id, selectedWeekId)
 
@@ -123,9 +132,9 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
       const sortedRows = uid
         ? [
-          ...rows.filter((u) => u.id === uid),
-          ...rows.filter((u) => u.id !== uid),
-        ]
+            ...rows.filter((u) => u.id === uid),
+            ...rows.filter((u) => u.id !== uid),
+          ]
         : rows
 
       setUsers(sortedRows)
@@ -159,10 +168,15 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
         <table className="min-w-full table-auto text-sm">
           <thead className="bg-zinc-900">
             <tr>
-              <th className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-700 z-10 text-left">User</th>
+              <th className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-700 z-10 text-left">
+                User
+              </th>
               <th className="text-center px-3 py-2 border-b border-zinc-700">Total</th>
               {games.map((g) => (
-                <th key={g.id} className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap">
+                <th
+                  key={g.id}
+                  className="text-center px-3 py-2 border-b border-zinc-700 whitespace-nowrap"
+                >
                   <div className="font-semibold text-sm">{g.difficulty} PT</div>
                   <div className="text-xs text-gray-400 mt-0.5">
                     {g.home_team.short_name} @ {g.away_team.short_name}
@@ -186,7 +200,9 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                     {u.username}
                     {isCurrentUser && ' (you)'}
                   </td>
-                  <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">{u.total}</td>
+                  <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">
+                    {u.total}
+                  </td>
                   {games.map((g) => {
                     const pick = u.picks.find((p) => p.game_id === g.id)
                     const hasStarted = new Date() >= new Date(g.kickoff_time)
@@ -218,8 +234,8 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                       g.home_team?.id === pick.selected_team_id
                         ? g.home_team
                         : g.away_team?.id === pick.selected_team_id
-                          ? g.away_team
-                          : null
+                        ? g.away_team
+                        : null
 
                     const isCorrect = g.winner_id && pick.selected_team_id === g.winner_id
                     const isIncorrect = g.winner_id && pick.selected_team_id !== g.winner_id
@@ -230,8 +246,10 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                           <div
                             className={clsx(
                               'relative w-8 h-8 rounded-full flex items-center justify-center',
-                              isCorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-green-500 before:opacity-20',
-                              isIncorrect && 'before:absolute before:inset-0 before:rounded-full before:bg-red-500 before:opacity-20'
+                              isCorrect &&
+                                'before:absolute before:inset-0 before:rounded-full before:bg-green-500 before:opacity-20',
+                              isIncorrect &&
+                                'before:absolute before:inset-0 before:rounded-full before:bg-red-500 before:opacity-20'
                             )}
                           >
                             {pickedTeam?.logo_url ? (

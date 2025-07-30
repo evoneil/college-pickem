@@ -54,11 +54,12 @@ export default function LoginPage() {
       .single()
 
     if (profile?.username) {
-      router.push('/week/current')
+      router.push('/picks')
     } else {
       router.push('/setup-username')
     }
   }
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">

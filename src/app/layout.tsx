@@ -3,7 +3,7 @@
 import type { Metadata } from 'next'
 import { usePathname } from 'next/navigation'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Titillium_Web } from 'next/font/google'
+import { DM_Sans } from 'next/font/google' // swapped in here
 import './globals.css'
 
 import Navbar from '@/components/Navbar'
@@ -18,11 +18,10 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
-const titillium = Titillium_Web({
-  variable: '--font-primary',
+const dmSans = DM_Sans({
+  variable: '--font-primary', // overrides --font-primary
   subsets: ['latin'],
-  weight: '700',
-  // style: 'italic',
+  weight: ['400', '500', '700'],
   display: 'swap',
 })
 
@@ -32,12 +31,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const pathname = usePathname()
-  const hideNavbar = pathname.startsWith('/login') || pathname.startsWith('/check-email') || pathname.startsWith('/setup-username')
+  const hideNavbar =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/check-email') ||
+    pathname.startsWith('/setup-username')
 
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${titillium.variable} antialiased bg-[#0E0E10] text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} ${dmSans.variable} antialiased bg-[#0E0E10] text-white`}
       >
         {!hideNavbar && <Navbar />}
         <main>{children}</main>
