@@ -11,12 +11,10 @@ import { getUsername } from '@/lib/getUsername'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const [currentWeek, setCurrentWeek] = useState<number | null>(null)
   const [username, setUsername] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    getCurrentWeek().then(setCurrentWeek)
     getUsername().then(setUsername)
 
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
@@ -47,11 +45,9 @@ export default function Navbar() {
 
       {/* Desktop nav links */}
       <div className="hidden md:flex space-x-8 text-sm">
-        {currentWeek && (
-          <Link href={`/week/${currentWeek}`} className="hover:underline">
-            Make Your Picks
-          </Link>
-        )}
+        <Link href="/picks" className="hover:underline">
+          Make Your Picks
+        </Link>
         <Link href="/leaderboard" className="hover:underline">
           Leaderboard
         </Link>
@@ -92,14 +88,12 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu (fullscreen overlay) */}
+      {/* Mobile menu */}
       {isOpen && (
         <div className="fixed inset-0 z-40 bg-[#18171C] text-white md:hidden flex flex-col items-center justify-center space-y-6 text-xl">
-          {currentWeek && (
-            <Link href={`/week/${currentWeek}`} onClick={() => setIsOpen(false)} className="hover:underline">
-              Make Your Picks
-            </Link>
-          )}
+          <Link href="/picks" onClick={() => setIsOpen(false)} className="hover:underline">
+            Make Your Picks
+          </Link>
           <Link href="/leaderboard" onClick={() => setIsOpen(false)} className="hover:underline">
             Leaderboard
           </Link>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import AuthGate from '@/components/AuthGate'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
@@ -30,18 +30,17 @@ type PickDraft = {
   double_down: boolean
 }
 
-export default function WeekPicksWrapper() {
+export default function PicksPage() {
   return (
     <AuthGate>
-      <WeekPicks />
+      <CurrentWeekPicks />
     </AuthGate>
   )
 }
 
-function WeekPicks() {
-  const params = useParams()
+function CurrentWeekPicks() {
   const router = useRouter()
-  const weekId = parseInt(params.weekId as string, 10)
+  const [currentWeekId, setCurrentWeekId] = useState<number | null>(null)
 
   const [games, setGames] = useState<Game[]>([])
   const [draftPicks, setDraftPicks] = useState<PickDraft[]>([])
@@ -54,6 +53,9 @@ function WeekPicks() {
 
   useEffect(() => {
     const init = async () => {
+      const id = await getCurrentWeek()
+      setCurrentWeekId(id)
+
       const { data: sessionData } = await supabase.auth.getSession()
       const uid = sessionData?.session?.user?.id ?? null
       setUserId(uid)
@@ -62,21 +64,15 @@ function WeekPicks() {
       const { data: weekData, error: weekError } = await supabase
         .from('weeks')
         .select('*')
-        .eq('id', weekId)
+        .eq('id', id)
         .single()
 
-      if (weekError || !weekData) {
-        router.push('/')
-        return
-      }
+      if (weekError || !weekData) return
 
       const now = new Date()
       const start = new Date(weekData.start_date)
-      const end = new Date(weekData.end_date)
-
       const isLockedOut = now < start
       setWeekLocked(isLockedOut)
-
       if (isLockedOut) return
 
       const { data: gameData, error: gameError } = await supabase
@@ -91,7 +87,7 @@ function WeekPicks() {
           home_team:home_team_id (id, name, short_name, logo_url, color),
           away_team:away_team_id (id, name, short_name, logo_url, color)
         `)
-        .eq('week', weekId)
+        .eq('week', id)
 
       if (gameError || !gameData) return
 
@@ -105,7 +101,6 @@ function WeekPicks() {
       setGames(sortedGames)
 
       const gameIds = sortedGames.map((g) => g.id)
-
       const { data: picksData } = await supabase
         .from('picks')
         .select('*')
@@ -122,13 +117,20 @@ function WeekPicks() {
         setOriginalPicks(formatted)
       }
     }
+
     init()
-  }, [weekId])
+  }, [])
 
   const updatePick = (game_id: string, selected_team_id: string) => {
     setDraftPicks((prev) => {
       const existing = prev.find((p) => p.game_id === game_id)
       if (existing) {
+        // Clicking same team again = deselect
+        if (existing.selected_team_id === selected_team_id) {
+          return prev.map((p) =>
+            p.game_id === game_id ? { ...p, selected_team_id: '', double_down: false } : p
+          )
+        }
         return prev.map((p) =>
           p.game_id === game_id ? { ...p, selected_team_id } : p
         )
@@ -177,57 +179,46 @@ function WeekPicks() {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
         <p className="text-xl text-center">This week is not available yet.</p>
-        <button
-          onClick={async () => {
-            const currentWeek = await getCurrentWeek()
-            router.push(`/week/${currentWeek}`)
-          }}
-          className="px-4 py-2 rounded-md bg-white text-black font-semibold hover:bg-zinc-200 transition"
-        >
-          Go to current week
-        </button>
       </div>
     )
   }
 
-
   return (
-  <div className="min-h-screen bg-black text-white p-4 space-y-6">
-    {showToast && (
-      <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-2 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
-        <img
-          src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
-          alt="Picks Saved"
-          className="w-6 h-6"
-        />
-        <span>Picks Saved</span>
-      </div>
-    )}
-
-    {!userId ? (
-      <div className="text-center text-red-500 font-semibold">
-        You must be signed in to make picks.
-      </div>
-    ) : (
-      <>
-        <div className="sticky top-0 z-30 bg-black py-3">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
-            <h1 className="text-xl font-bold">WEEK {weekId} PICKS</h1>
-            <button
-              onClick={savePicks}
-              disabled={picksUnchanged}
-              className={clsx(
-                'w-full md:w-auto px-6 py-3 rounded-lg transition-colors uppercase tracking-wide font-[var(--font-primary)] font-bold italic',
-                picksUnchanged
-                  ? 'bg-[#2C2A33] text-zinc-400 cursor-not-allowed'
-                  : 'bg-[#7162D7] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
-              )}
-            >
-              Save Picks
-            </button>
-          </div>
+    <div className="min-h-screen bg-black text-white p-4 space-y-6">
+      {showToast && (
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-2 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
+          <img
+            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
+            alt="Picks Saved"
+            className="w-6 h-6"
+          />
+          <span>Picks Saved</span>
         </div>
+      )}
 
+      {!userId ? (
+        <div className="text-center text-red-500 font-semibold">
+          You must be signed in to make picks.
+        </div>
+      ) : (
+        <>
+          <div className="sticky top-0 z-30 bg-black py-3">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+              <h1 className="text-xl font-bold">WEEK {currentWeekId} PICKS</h1>
+              <button
+                onClick={savePicks}
+                disabled={picksUnchanged}
+                className={clsx(
+                  'w-full md:w-auto px-6 py-3 rounded-lg transition-colors uppercase tracking-wide font-[var(--font-primary)] font-bold italic',
+                  picksUnchanged
+                    ? 'bg-[#2C2A33] text-zinc-400 cursor-not-allowed'
+                    : 'bg-[#7162D7] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
+                )}
+              >
+                Save Picks
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {games.map((game) => {
@@ -253,7 +244,7 @@ function WeekPicks() {
                   </div>
 
                   <div className="flex gap-2 mt-2">
-                    {/* Away Team Button */}
+                    {/* Away Button */}
                     <button
                       onClick={() => updatePick(game.id, game.away_team.id)}
                       disabled={isLocked}
@@ -275,7 +266,7 @@ function WeekPicks() {
                       {selected_id !== game.home_team.id && <span className="z-10">{game.away_team.short_name}</span>}
                     </button>
 
-                    {/* Home Team Button */}
+                    {/* Home Button */}
                     <button
                       onClick={() => updatePick(game.id, game.home_team.id)}
                       disabled={isLocked}

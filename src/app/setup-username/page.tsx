@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { getCurrentWeek } from '@/lib/getCurrentWeek'
 
 export default function SetupUsername() {
   const [username, setUsername] = useState('')
@@ -11,7 +10,7 @@ export default function SetupUsername() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  // ✅ Redirect based on session + profile
+  // ✅ Redirect if user already has a username
   useEffect(() => {
     const enforceCorrectFlow = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -27,12 +26,7 @@ export default function SetupUsername() {
         .single()
 
       if (profile?.username) {
-        const currentWeekId = await getCurrentWeek()
-        if (currentWeekId) {
-          router.replace(`/week/${currentWeekId}`)
-        } else {
-          router.replace('/login')
-        }
+        router.replace('/picks')
       }
     }
 
@@ -70,12 +64,7 @@ export default function SetupUsername() {
       console.error('Upsert error:', result.error)
       setError(result.error.message || 'Something went wrong.')
     } else {
-      const currentWeekId = await getCurrentWeek()
-      if (currentWeekId) {
-        router.push(`/week/${currentWeekId}`)
-      } else {
-        router.push('/login')
-      }
+      router.push('/picks')
     }
 
     setLoading(false)

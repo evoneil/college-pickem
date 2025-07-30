@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { getCurrentWeek } from '@/lib/getCurrentWeek'
 
 export default function PostAuthCheck() {
   const router = useRouter()
@@ -24,12 +23,7 @@ export default function PostAuthCheck() {
         .single()
 
       if (profile?.username) {
-        const currentWeekId = await getCurrentWeek()
-        if (currentWeekId) {
-          router.replace(`/week/${currentWeekId}`)
-        } else {
-          router.replace('/login')
-        }
+        router.replace('/picks')
       } else {
         router.replace('/setup-username')
       }
