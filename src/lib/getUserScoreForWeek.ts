@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 
 export async function getUserScoreForWeek(userId: string, week: number): Promise<number> {
-    
+  
   // 1. Get all games from that week
   const { data: games } = await supabase
     .from('games')
@@ -25,7 +25,8 @@ export async function getUserScoreForWeek(userId: string, week: number): Promise
   let score = 0
   for (const pick of picks) {
     const game = games.find(g => g.id === pick.game_id)
-    if (!game) continue
+    if (!game || game.winner_id === null) continue // 🛠️ Skip unplayed games
+
     const correct = pick.selected_team_id === game.winner_id
     const base = game.difficulty
 
