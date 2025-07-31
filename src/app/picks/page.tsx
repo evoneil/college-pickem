@@ -47,8 +47,12 @@ function CurrentWeekPicks() {
   const [showToast, setShowToast] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [weekLocked, setWeekLocked] = useState(false)
+  const [showErrorToast, setShowErrorToast] = useState(false)
+
 
   const picksUnchanged = JSON.stringify(draftPicks) === JSON.stringify(originalPicks)
+
+
 
   const doubleDownLocked = draftPicks.some((pick) => {
     const game = games.find((g) => g.id === pick.game_id)
@@ -183,7 +187,10 @@ function CurrentWeekPicks() {
       setTimeout(() => setShowToast(false), 3000)
     } else {
       console.error(error)
+      setShowErrorToast(true)
+      setTimeout(() => setShowErrorToast(false), 4000)
     }
+
   }
 
   return (
@@ -198,6 +205,21 @@ function CurrentWeekPicks() {
           <span>Picks Saved</span>
         </div>
       )}
+
+      {showErrorToast && (
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border border-[#FF4D68] bg-[#1B1922] text-white text-lg shadow-md transition-opacity">
+          <img
+            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-error.svg"
+            alt="Error"
+            className="w-6 h-6"
+          />
+          <div className="flex flex-col">
+            <span className="font-bold text-white leading-snug">Error Saving Picks</span>
+            <span className="text-sm text-gray-400 -mt-0.5">Refresh the page and try again</span>
+          </div>
+        </div>
+      )}
+
 
       {!userId ? (
         <div className="text-center text-red-500 font-semibold">
