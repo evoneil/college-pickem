@@ -34,7 +34,9 @@ export default function RootLayout({
   const hideNavbar =
     pathname.startsWith('/login') ||
     pathname.startsWith('/check-email') ||
-    pathname.startsWith('/setup-username')
+    pathname.startsWith('/setup-username') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password')
 
   return (
     <html lang="en">

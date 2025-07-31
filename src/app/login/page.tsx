@@ -77,9 +77,21 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-2 border rounded mb-4"
+          className="w-full p-2 border rounded mb-2"
           onChange={(e) => setPassword(e.target.value)}
         />
+
+        {isLogin && (
+          <div className="text-right mb-4">
+            <button
+              className="text-sm text-blue-500 underline hover:text-blue-400 transition"
+              onClick={() => router.push('/forgot-password')}
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
+
 
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
