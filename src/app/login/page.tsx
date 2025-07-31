@@ -24,7 +24,18 @@ export default function LoginPage() {
         await checkUsernameAndRedirect()
       }
     } else {
-      // ✉️ SIGNUP FLOW WITH REDIRECT TO /setup-username AFTER EMAIL CONFIRMATION
+      // 🧠 Pre-check: does the email already exist?
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password: 'fake-test-password',
+      })
+
+      if (loginError && loginError.message === 'Invalid login credentials') {
+        setError('This email is already registered. Try logging in instead.')
+        return
+      }
+
+      // ✉️ SIGNUP FLOW
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -32,8 +43,6 @@ export default function LoginPage() {
           emailRedirectTo: `${location.origin}/post-auth-check`,
         },
       })
-
-
 
       if (error) {
         setError(error.message)
@@ -47,7 +56,7 @@ export default function LoginPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data: profile, error } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('username')
       .eq('id', user.id)
@@ -59,7 +68,6 @@ export default function LoginPage() {
       router.push('/setup-username')
     }
   }
-
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
@@ -92,7 +100,6 @@ export default function LoginPage() {
           </div>
         )}
 
-
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
         <button
@@ -106,7 +113,10 @@ export default function LoginPage() {
           {isLogin ? 'New here?' : 'Already have an account?'}{' '}
           <button
             className="text-blue-600 underline"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin)
+              setError(null)
+            }}
           >
             {isLogin ? 'Sign Up' : 'Log In'}
           </button>
