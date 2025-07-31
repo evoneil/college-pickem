@@ -189,7 +189,7 @@ function CurrentWeekPicks() {
   return (
     <div className="min-h-screen bg-black text-white p-4 space-y-6">
       {showToast && (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-1 border-[#7AFFB3] bg-[#0D2B21] text-white text-lg shadow-md transition-opacity">
+        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-1 border-[#7AFFB3] bg-[#14121C] text-white text-lg shadow-md transition-opacity">
           <img
             src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
             alt="Picks Saved"
@@ -215,7 +215,7 @@ function CurrentWeekPicks() {
                   'w-full md:w-auto px-6 py-3 rounded-lg transition-colors border text-s',
                   picksUnchanged
                     ? 'bg-[#2C2A33] text-zinc-400 border-[#3f3f46] cursor-not-allowed'
-                    : 'bg-[#212048] border-[#9996FF] text-white hover:bg-[#8574e0] active:bg-[#5c4ed0]'
+                    : 'bg-[#212048] border-[#9996FF] text-white hover:bg-[#8574e0] active:bg-[#2E2C67]'
                 )}
               >
                 Save Picks
@@ -266,14 +266,14 @@ function CurrentWeekPicks() {
                             : undefined,
                         border: `1px solid ${selected_id === game.away_team.id
                           ? game.away_team.color
-                          : '#24232B'
+                          : '#504E57'
                           }`,
                       }}
                     >
                       {selected_id === game.away_team.id && (
                         <div
                           className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
-                          style={{ background: 'linear-gradient(to top, #121115, transparent)' }}
+                          style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
                         />
                       )}
                       {game.away_team.logo_url && (
@@ -307,14 +307,14 @@ function CurrentWeekPicks() {
                             : undefined,
                         border: `1px solid ${selected_id === game.home_team.id
                           ? game.home_team.color
-                          : '#24232B'
+                          : '#504E57'
                           }`,
                       }}
                     >
                       {selected_id === game.home_team.id && (
                         <div
                           className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
-                          style={{ background: 'linear-gradient(to top, #121115, transparent)' }}
+                          style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
                         />
                       )}
                       {game.home_team.logo_url && (
@@ -340,7 +340,7 @@ function CurrentWeekPicks() {
                           ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
                           : isDoubleDown
                             ? 'bg-[#43151C] text-white border-[#CE152E]'
-                            : 'bg-zinc-800 text-gray-300'
+                            : 'bg-[#24232B] text-gray-300'
                       )}
                     >
                       <img
