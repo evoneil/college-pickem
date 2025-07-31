@@ -255,8 +255,8 @@ function CurrentWeekPicks() {
                         selected_id === game.away_team.id
                           ? 'flex-[2]'
                           : selected_id === game.home_team.id
-                          ? 'flex-[1]'
-                          : 'flex-1',
+                            ? 'flex-[1]'
+                            : 'flex-1',
                         isLocked && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
@@ -267,7 +267,7 @@ function CurrentWeekPicks() {
                         border: `1px solid ${selected_id === game.away_team.id
                           ? game.away_team.color
                           : '#3f3f46'
-                        }`,
+                          }`,
                       }}
                     >
                       {selected_id === game.away_team.id && (
@@ -296,8 +296,8 @@ function CurrentWeekPicks() {
                         selected_id === game.home_team.id
                           ? 'flex-[2]'
                           : selected_id === game.away_team.id
-                          ? 'flex-[1]'
-                          : 'flex-1',
+                            ? 'flex-[1]'
+                            : 'flex-1',
                         isLocked && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
@@ -308,7 +308,7 @@ function CurrentWeekPicks() {
                         border: `1px solid ${selected_id === game.home_team.id
                           ? game.home_team.color
                           : '#3f3f46'
-                        }`,
+                          }`,
                       }}
                     >
                       {selected_id === game.home_team.id && (
@@ -330,23 +330,28 @@ function CurrentWeekPicks() {
                     </button>
                   </div>
 
-                {selected_id && (!doubleDownLocked || isDoubleDown) && (
-
+                  {selected_id && (!doubleDownLocked || isDoubleDown) && (
                     <button
                       onClick={() => toggleDoubleDown(game.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'w-full text-center mt-2 py-2.5 border border-[#3f3f46] rounded-md text-s uppercase tracking-wide font-medium transition-all',
+                        'w-full text-center mt-2 py-2.5 border border-[#3f3f46] rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
                         isLocked
                           ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
                           : isDoubleDown
-                          ? 'bg-[#43151C] text-white border-[#CE152E]'
-                          : 'bg-zinc-800 text-gray-300'
+                            ? 'bg-[#43151C] text-white border-[#CE152E]'
+                            : 'bg-zinc-800 text-gray-300'
                       )}
                     >
+                      <img
+                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-doubledown.svg"
+                        alt="Double Down icon"
+                        className="w-4 h-4"
+                      />
                       {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
                     </button>
                   )}
+
                 </div>
               )
             })}
