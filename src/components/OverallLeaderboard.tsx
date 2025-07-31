@@ -75,11 +75,11 @@ export default function OverallLeaderboard() {
   const getRankStyle = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'bg-yellow-400 text-black'
+        return 'bg-[#3F1D00] border border-[#FFBF47] text-white'
       case 2:
-        return 'bg-blue-200 text-black'
+        return 'bg-[#001B26] border border-[#9AE2FF] text-white'
       case 3:
-        return 'bg-orange-400 text-black'
+        return 'bg-[#260C00] border border-[#FFAA82] text-white'
       default:
         return 'bg-neutral-700 text-white'
     }
@@ -97,14 +97,14 @@ export default function OverallLeaderboard() {
             <div
               key={u.id}
               className={clsx(
-                'rounded-xl px-4 py-3 flex items-start justify-between transition',
-                isCurrentUser ? 'bg-zinc-800/50' : 'bg-neutral-800'
+                'rounded-xl pr-4 pl-2 py-2 flex border border-[#24232B] items-center justify-between transition',
+                isCurrentUser ? 'bg-[#14121C]' : 'bg-[#14121C]'
               )}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3">
                 <div
                   className={clsx(
-                    'text-sm font-bold px-2 py-1 rounded',
+                    'flex justify-center text-xl py-1 w-10 font-bold rounded-lg',
                     getRankStyle(u.rank)
                   )}
                 >
@@ -115,7 +115,7 @@ export default function OverallLeaderboard() {
                   {isCurrentUser && ' (you)'}
                 </p>
               </div>
-              <div className="text-white font-bold italic text-sm tracking-wide whitespace-nowrap">
+              <div className="text-white font-bold italic text-xxl tracking-wide whitespace-nowrap">
                 {u.total} PTS
               </div>
             </div>

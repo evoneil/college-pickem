@@ -251,7 +251,7 @@ function CurrentWeekPicks() {
                       onClick={() => updatePick(game.id, game.away_team.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all overflow-hidden',
+                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
                         selected_id === game.away_team.id
                           ? 'flex-[2]'
                           : selected_id === game.home_team.id
@@ -266,7 +266,7 @@ function CurrentWeekPicks() {
                             : undefined,
                         border: `1px solid ${selected_id === game.away_team.id
                           ? game.away_team.color
-                          : '#3f3f46'
+                          : '#24232B'
                           }`,
                       }}
                     >
@@ -292,7 +292,7 @@ function CurrentWeekPicks() {
                       onClick={() => updatePick(game.id, game.home_team.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all overflow-hidden',
+                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
                         selected_id === game.home_team.id
                           ? 'flex-[2]'
                           : selected_id === game.away_team.id
@@ -307,7 +307,7 @@ function CurrentWeekPicks() {
                             : undefined,
                         border: `1px solid ${selected_id === game.home_team.id
                           ? game.home_team.color
-                          : '#3f3f46'
+                          : '#24232B'
                           }`,
                       }}
                     >
