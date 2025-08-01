@@ -6,11 +6,12 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 
 const dmSans = DM_Sans({
-  variable: '--font-primary',
   subsets: ['latin'],
   weight: ['400', '500', '700'],
+  variable: '--font-primary',
   display: 'swap',
 })
+
 
 export const metadata: Metadata = {
   title: 'College Pick\'em',
