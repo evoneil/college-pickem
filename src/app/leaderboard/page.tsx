@@ -27,15 +27,15 @@ export default function LeaderboardPage() {
 
   return (
     <AuthGate>
-      <div className="p-6 text-white">
+      <div className="px-4 py-8 text-white">
         <div className="mb-6 flex gap-2">
           <button
             onClick={() => setView('weekly')}
             className={clsx(
               'px-4 py-2 rounded font-medium transition',
               view === 'weekly'
-                ? 'bg-white text-black'
-                : 'bg-zinc-800 hover:bg-zinc-700 text-white'
+                ? 'bg-[#403D4F] border border-white text-white'
+                : 'bg-zinc-800 border border-[#504E57] hover:bg-zinc-700 text-white'
             )}
           >
             Weekly
@@ -45,8 +45,8 @@ export default function LeaderboardPage() {
             className={clsx(
               'px-4 py-2 rounded font-medium transition',
               view === 'overall'
-                ? 'bg-white text-black'
-                : 'bg-zinc-800 hover:bg-zinc-700 text-white'
+                ? 'bg-[#403D4F] border border-white text-white'
+                : 'bg-zinc-800 border border-[#504E57] hover:bg-zinc-700 text-white'
             )}
           >
             Overall

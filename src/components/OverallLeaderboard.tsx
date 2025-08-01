@@ -52,21 +52,11 @@ export default function OverallLeaderboard() {
         rows.push({ id: user.id, username: user.username, total })
       }
 
-      // Sort and assign ranks before bumping current user
       const ranked = rows
         .sort((a, b) => b.total - a.total)
         .map((u, i) => ({ ...u, rank: i + 1 }))
 
-      // Move current user to top (without affecting their rank)
-      const sorted =
-        uid !== null
-          ? [
-              ...ranked.filter((u) => u.id === uid),
-              ...ranked.filter((u) => u.id !== uid),
-            ]
-          : ranked
-
-      setUsers(sorted)
+      setUsers(ranked)
     }
 
     load()

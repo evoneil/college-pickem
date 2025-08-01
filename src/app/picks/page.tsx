@@ -222,14 +222,13 @@ function CurrentWeekPicks() {
 
 
       {!userId ? (
-        <div className="text-center text-red-500 font-semibold">
-          You must be signed in to make picks.
+        <div>
         </div>
       ) : (
         <>
           <div className="sticky top-0 z-30 bg-black py-3">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
-              <h1 className="text-xl font-bold">WEEK {currentWeekId} PICKS</h1>
+              <h1 className="text-xl">Week {currentWeekId} Picks</h1>
               <button
                 onClick={savePicks}
                 disabled={picksUnchanged}
@@ -367,32 +366,30 @@ function CurrentWeekPicks() {
                       </button>
                     )}
                   </div>
-
-
-                  {selected_id && (!doubleDownLocked || isDoubleDown) && (
-                    <button
-                      onClick={() => toggleDoubleDown(game.id)}
-                      disabled={isLocked}
-                      className={clsx(
-                        'w-full text-center mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
-                        isLocked && 'cursor-not-allowed',
-                        isDoubleDown
-                          ? 'bg-[#43151C] text-white border-[#CE152E]'
-                          : isLocked
-                            ? 'bg-zinc-700 text-zinc-400 border-[#3f3f46]'
-                            : 'bg-[#24232B] text-gray-300 border-[#3f3f46]'
-                      )}
-
-                    >
-                      <img
-                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//doubledown.svg"
-                        alt="Double Down icon"
-                        className="w-4 h-4"
-                      />
-                      {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
-                    </button>
-                  )}
-
+                  {selected_id &&
+                    (
+                      (!isLocked && !doubleDownLocked) || isDoubleDown) && (
+                      <button
+                        onClick={() => toggleDoubleDown(game.id)}
+                        disabled={isLocked}
+                        className={clsx(
+                          'w-full text-center mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
+                          isLocked && 'cursor-not-allowed',
+                          isDoubleDown
+                            ? 'bg-[#43151C] text-white border-[#CE152E]'
+                            : isLocked
+                              ? 'hidden' // locked but not doubled down — hide it
+                              : 'bg-[#24232B] text-gray-300 border-[#3f3f46]'
+                        )}
+                      >
+                        <img
+                          src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//doubledown.svg"
+                          alt="Double Down icon"
+                          className="w-4 h-4"
+                        />
+                        {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
+                      </button>
+                    )}
                 </div>
               )
             })}
