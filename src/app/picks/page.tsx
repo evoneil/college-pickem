@@ -198,7 +198,7 @@ function CurrentWeekPicks() {
       {showToast && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-1 border-[#7AFFB3] bg-[#14121C] text-white text-lg shadow-md transition-opacity">
           <img
-            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-pickssaved.svg"
+            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//saved.svg"
             alt="Picks Saved"
             className="w-6 h-6"
           />
@@ -209,7 +209,7 @@ function CurrentWeekPicks() {
       {showErrorToast && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border border-[#FF4D68] bg-[#1B1922] text-white text-lg shadow-md transition-opacity">
           <img
-            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-error.svg"
+            src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//error.svg"
             alt="Error"
             className="w-6 h-6"
           />
@@ -366,7 +366,7 @@ function CurrentWeekPicks() {
                       )}
                     >
                       <img
-                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-doubledown.svg"
+                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//doubledown.svg"
                         alt="Double Down icon"
                         className="w-4 h-4"
                       />

@@ -62,7 +62,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <Image
-                src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//icons-user.svg"
+                src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//user.svg"
                 alt="Profile Icon"
                 width={20}
                 height={20}

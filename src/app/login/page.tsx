@@ -22,15 +22,6 @@ export default function LoginPage() {
         await checkUsernameAndRedirect()
       }
     } else {
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password: 'fake-test-password',
-      })
-      if (loginError && loginError.message === 'Invalid login credentials') {
-        setError('This email is already registered. Try logging in instead.')
-        return
-      }
-
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -39,7 +30,10 @@ export default function LoginPage() {
         },
       })
 
-      if (error) {
+      if (error?.message.includes('User already registered')) {
+        setError('That email is already registered. Try logging in instead.')
+        setIsLogin(true)
+      } else if (error) {
         setError(error.message)
       } else {
         router.push('/check-email')
@@ -104,7 +98,7 @@ export default function LoginPage() {
           onClick={handleAuth}
           className="w-full bg-[#5C5BF0] text-white py-2 rounded-md text-sm font-semibold hover:bg-[#7675ff] transition"
         >
-          {isLogin ? 'Login In' : 'Create Account'}
+          {isLogin ? 'Log In' : 'Create Account'}
         </button>
 
         <div className="flex items-center my-5">
