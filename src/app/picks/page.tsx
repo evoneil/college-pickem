@@ -194,7 +194,7 @@ function CurrentWeekPicks() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 space-y-6">
+    <div className="min-h-screen max-w-2xl mx-auto text-white p-4 space-y-6">
       {showToast && (
         <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border-1 border-[#7AFFB3] bg-[#14121C] text-white text-lg shadow-md transition-opacity">
           <img
@@ -265,105 +265,124 @@ function CurrentWeekPicks() {
                     <span>{game.difficulty} PTS</span>
                   </div>
                   <div className="text-s pb-2 text-gray-500">
-                    {dateStr}, {timeStr} {isLocked && '🔒'}
+                    {dateStr}, {timeStr}
                   </div>
+
+                  {isLocked && (
+                    <div className="flex items-center justify-center gap-2 bg-[#2D2B36] text-zinc-200 text-sm font-medium py-3 mb-4 px-4 rounded-lg mb-2">
+                      <img
+                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/locked.svg"
+                        alt="Locked"
+                        className="w-4 h-4"
+                      />
+                      <span>Matchup has locked</span>
+                    </div>
+                  )}
+
 
                   <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => updatePick(game.id, game.away_team.id)}
-                      disabled={isLocked}
-                      className={clsx(
-                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
-                        selected_id === game.away_team.id
-                          ? 'flex-[2]'
-                          : selected_id === game.home_team.id
-                            ? 'flex-[1]'
-                            : 'flex-1',
-                        isLocked && 'opacity-50 cursor-not-allowed'
-                      )}
-                      style={{
-                        background:
+                    {/* Away Team Button — only show if not locked, or picked, or no pick made */}
+                    {(!isLocked || !selected_id || selected_id === game.away_team.id) && (
+                      <button
+                        onClick={() => updatePick(game.id, game.away_team.id)}
+                        disabled={isLocked}
+                        className={clsx(
+                          'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
                           selected_id === game.away_team.id
-                            ? `radial-gradient(circle at center, ${game.away_team.color} 0%, transparent 100%)`
-                            : undefined,
-                        border: `1px solid ${selected_id === game.away_team.id
-                          ? game.away_team.color
-                          : '#504E57'
-                          }`,
-                      }}
-                    >
-                      {selected_id === game.away_team.id && (
-                        <div
-                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
-                          style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
-                        />
-                      )}
-                      {game.away_team.logo_url && (
-                        <img
-                          src={game.away_team.logo_url}
-                          alt=""
-                          className="w-10 h-10 object-contain z-10"
-                        />
-                      )}
-                      {selected_id !== game.home_team.id && (
-                        <span className="z-10">{game.away_team.short_name}</span>
-                      )}
-                    </button>
+                            ? 'flex-[2]'
+                            : selected_id === game.home_team.id
+                              ? 'flex-[1]'
+                              : 'flex-1',
+                          isLocked && 'opacity-50 cursor-not-allowed'
+                        )}
+                        style={{
+                          background:
+                            selected_id === game.away_team.id
+                              ? `radial-gradient(circle at center, ${game.away_team.color} 0%, transparent 100%)`
+                              : undefined,
+                          border: `1px solid ${selected_id === game.away_team.id
+                            ? game.away_team.color
+                            : '#504E57'}`
+                        }}
+                      >
+                        {selected_id === game.away_team.id && (
+                          <div
+                            className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                            style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
+                          />
+                        )}
+                        {game.away_team.logo_url && (
+                          <img
+                            src={game.away_team.logo_url}
+                            alt=""
+                            className="w-10 h-10 object-contain z-10"
+                          />
+                        )}
+                        {selected_id !== game.home_team.id && (
+                          <span className="z-10">{game.away_team.short_name}</span>
+                        )}
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => updatePick(game.id, game.home_team.id)}
-                      disabled={isLocked}
-                      className={clsx(
-                        'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
-                        selected_id === game.home_team.id
-                          ? 'flex-[2]'
-                          : selected_id === game.away_team.id
-                            ? 'flex-[1]'
-                            : 'flex-1',
-                        isLocked && 'opacity-50 cursor-not-allowed'
-                      )}
-                      style={{
-                        background:
+                    {/* Home Team Button — same logic */}
+                    {(!isLocked || !selected_id || selected_id === game.home_team.id) && (
+                      <button
+                        onClick={() => updatePick(game.id, game.home_team.id)}
+                        disabled={isLocked}
+                        className={clsx(
+                          'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
                           selected_id === game.home_team.id
-                            ? `radial-gradient(circle at center, ${game.home_team.color} 0%, transparent 100%)`
-                            : undefined,
-                        border: `1px solid ${selected_id === game.home_team.id
-                          ? game.home_team.color
-                          : '#504E57'
-                          }`,
-                      }}
-                    >
-                      {selected_id === game.home_team.id && (
-                        <div
-                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
-                          style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
-                        />
-                      )}
-                      {game.home_team.logo_url && (
-                        <img
-                          src={game.home_team.logo_url}
-                          alt=""
-                          className="w-10 h-10 object-contain z-10"
-                        />
-                      )}
-                      {selected_id !== game.away_team.id && (
-                        <span className="z-10">{game.home_team.short_name}</span>
-                      )}
-                    </button>
+                            ? 'flex-[2]'
+                            : selected_id === game.away_team.id
+                              ? 'flex-[1]'
+                              : 'flex-1',
+                          isLocked && 'opacity-50 cursor-not-allowed'
+                        )}
+                        style={{
+                          background:
+                            selected_id === game.home_team.id
+                              ? `radial-gradient(circle at center, ${game.home_team.color} 0%, transparent 100%)`
+                              : undefined,
+                          border: `1px solid ${selected_id === game.home_team.id
+                            ? game.home_team.color
+                            : '#504E57'}`
+                        }}
+                      >
+                        {selected_id === game.home_team.id && (
+                          <div
+                            className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                            style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
+                          />
+                        )}
+                        {game.home_team.logo_url && (
+                          <img
+                            src={game.home_team.logo_url}
+                            alt=""
+                            className="w-10 h-10 object-contain z-10"
+                          />
+                        )}
+                        {selected_id !== game.away_team.id && (
+                          <span className="z-10">{game.home_team.short_name}</span>
+                        )}
+                      </button>
+                    )}
                   </div>
+
 
                   {selected_id && (!doubleDownLocked || isDoubleDown) && (
                     <button
                       onClick={() => toggleDoubleDown(game.id)}
                       disabled={isLocked}
                       className={clsx(
-                        'w-full text-center mt-2 py-2.5 border border-[#3f3f46] rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
-                        isLocked
-                          ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                          : isDoubleDown
-                            ? 'bg-[#43151C] text-white border-[#CE152E]'
-                            : 'bg-[#24232B] text-gray-300'
+                        'w-full text-center mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
+                        isLocked && 'cursor-not-allowed',
+                        isDoubleDown
+                          ? 'bg-[#43151C] text-white border-[#CE152E]'
+                          : isLocked
+                            ? 'bg-zinc-700 text-zinc-400 border-[#3f3f46]'
+                            : 'bg-[#24232B] text-gray-300 border-[#3f3f46]'
                       )}
+
                     >
                       <img
                         src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//doubledown.svg"

@@ -55,7 +55,6 @@ export default function LeaderboardPage() {
 
         {view === 'weekly' && (
           <>
-            <h2 className="text-xl font-bold mb-4">Weekly Leaderboard</h2>
             {currentWeekId !== null ? (
               <WeeklyLeaderboard weekId={currentWeekId} />
             ) : (
@@ -63,7 +62,6 @@ export default function LeaderboardPage() {
             )}
           </>
         )}
-
         {view === 'overall' && <OverallLeaderboard />}
       </div>
     </AuthGate>

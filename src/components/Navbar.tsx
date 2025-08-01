@@ -36,7 +36,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-[#18171C] text-white px-4 py-3 flex items-center justify-between relative z-50">
+    <nav className="bg-[#18171C] text-white px-4 py-3 ">
+      <div className="flex items-center justify-between relative z-50">
       {/* Logo */}
       <div className="flex items-center space-x-2">
         <Image src="/logo.svg" alt="Logo" width={24} height={24} />
@@ -107,6 +108,7 @@ export default function Navbar() {
           )}
         </div>
       )}
+      </div>
     </nav>
   )
 }

@@ -145,6 +145,8 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
   return (
     <div>
+      <h1 className="text-xl mb-6">Weekly Leaderboard</h1>
+
       <div className="mb-4 overflow-x-auto">
         <div className="flex gap-2 min-w-max px-1 mb-4">
           {weeks.map((w) => (
@@ -261,7 +263,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                               <img
                                 src={pickedTeam.logo_url}
                                 alt={pickedTeam.name}
-                                className="w-full h-full object-contain relative z-10"
+                                className="w-full h-full object-contain relative z-8"
                               />
                             ) : (
                               '❓'
@@ -269,10 +271,13 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
                             {/* DD tag */}
                             {pick.double_down && (
-                              <span className="absolute -right-4 top-1/2 -translate-y-1/2 text-[10px] text-white rounded font-bold z-20">
-                                DD
-                              </span>
+                              <img
+                                src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/doubledown.svg"
+                                alt="Double Down"
+                                className="absolute -right-4 top-1/2 -translate-y-1/2 w-4 h-4 z-8"
+                              />
                             )}
+
                           </div>
                         </div>
 

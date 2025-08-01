@@ -81,13 +81,13 @@ export default function OverallLeaderboard() {
       case 3:
         return 'bg-[#260C00] border border-[#FFAA82] text-white'
       default:
-        return 'bg-neutral-700 text-white'
+        return 'bg-[#24232B] border border-[#504E57] text-white'
     }
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Overall Leaderboard</h1>
+      <h1 className="text-xl mb-6">Overall Leaderboard</h1>
 
       <div className="space-y-2">
         {users.map((u) => {
@@ -97,8 +97,8 @@ export default function OverallLeaderboard() {
             <div
               key={u.id}
               className={clsx(
-                'rounded-xl pr-4 pl-2 py-2 flex border border-[#24232B] items-center justify-between transition',
-                isCurrentUser ? 'bg-[#14121C]' : 'bg-[#14121C]'
+                'rounded-xl pr-4 pl-2 py-2 flex border items-center justify-between transition',
+                isCurrentUser ? 'border-[#4D4B5B]' : 'border-[#24232B]'
               )}
             >
               <div className="flex items-center gap-3">
