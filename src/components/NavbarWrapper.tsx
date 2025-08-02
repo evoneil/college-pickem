@@ -1,16 +1,15 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import Navbar from './Navbar'
+import Navbar from '@/components/Navbar'
 
-export default function NavbarWrapper() {
+export default function NavbarClient() {
   const pathname = usePathname()
   const hideNavbar =
     pathname.startsWith('/login') ||
     pathname.startsWith('/check-email') ||
-    pathname.startsWith('/setup-username') ||
-    pathname.startsWith('/forgot-password') ||
-    pathname.startsWith('/reset-password')
+    pathname.startsWith('/setup-username')
 
-  return !hideNavbar ? <Navbar /> : null
+  if (hideNavbar) return null
+  return <Navbar />
 }

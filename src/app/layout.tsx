@@ -1,30 +1,25 @@
-import type { Metadata } from 'next'
-import { DM_Sans } from 'next/font/google'
 import './globals.css'
-import NavbarWrapper from '@/components/NavbarWrapper'
+import { DM_Sans } from 'next/font/google'
+import NavbarClient from '@/components/NavbarWrapper'
 
 const dmSans = DM_Sans({
-  variable: '--font-primary',
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   display: 'swap',
+  variable: '--font-primary',
 })
 
-export const metadata: Metadata = {
-  title: 'College Pick\'em',
-  description: 'Make your weekly college football picks!',
+export const metadata = {
+  title: 'College Pick’em',
+  description: 'Pick weekly college football games',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} antialiased bg-[#0E0E10] text-white`}>
-        <NavbarWrapper />
-        <main>{children}</main>
+      <body className={dmSans.variable}>
+        <NavbarClient />
+        {children}
       </body>
     </html>
   )
