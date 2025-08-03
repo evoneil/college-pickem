@@ -1,3 +1,4 @@
+// trigger rebuild
 import './globals.css'
 // import { DM_Sans } from 'next/font/google'
 import NavbarClient from '@/components/NavbarWrapper'
