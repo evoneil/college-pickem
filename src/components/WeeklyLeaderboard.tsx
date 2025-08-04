@@ -6,7 +6,7 @@ import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import clsx from 'clsx'
 
-const ENABLE_WEEK_FILTERING = true // Toggle this on/off to filter out future weeks
+const ENABLE_WEEK_FILTERING = false // Toggle this on/off to filter out future weeks
 
 type Team = {
   id: string
@@ -48,6 +48,8 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
   const [selectedWeekId, setSelectedWeekId] = useState<number>(weekId)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [currentWeekId, setCurrentWeekId] = useState<number | null>(null)
+  const [maxWeeklyScore, setMaxWeeklyScore] = useState<number | null>(null)
+
 
   useEffect(() => {
     const load = async () => {
@@ -130,14 +132,24 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
         })
       }
 
-      const sortedRows = uid
-        ? [
-          ...rows.filter((u) => u.id === uid),
-          ...rows.filter((u) => u.id !== uid),
-        ]
-        : rows
+      const sortedByScore = rows.sort((a, b) => b.total - a.total)
 
-      setUsers(sortedRows)
+      const reordered =
+        uid != null
+          ? [
+            ...sortedByScore.filter((u) => u.id === uid),
+            ...sortedByScore.filter((u) => u.id !== uid),
+          ]
+          : sortedByScore
+
+      const maxScore = Math.max(...rows.map((u) => u.total))
+
+      setUsers(reordered)
+      setMaxWeeklyScore(maxScore) // You'll add a state for this
+
+
+      setUsers(reordered)
+
     }
 
     load()
@@ -198,10 +210,16 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                     isCurrentUser && 'bg-zinc-800/50'
                   )}
                 >
-                  <td className="sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10">
+                  <td
+                    className={clsx(
+                      'sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10',
+                      u.total === maxWeeklyScore && 'text-[#FFBF47]'
+                    )}
+                  >
                     {u.username}
                     {isCurrentUser && ' (you)'}
                   </td>
+
                   <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">
                     {u.total}
                   </td>
