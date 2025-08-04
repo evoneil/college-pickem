@@ -5,7 +5,7 @@
   --background: #ffffff;
   --foreground: #171717;
 
-  --font-sans: var(--font-primary); /* Set by next/font/google via `variable` option */
+  /* --font-sans: var(--font-primary);  */
 }
 
 /* Dark mode overrides */
@@ -20,5 +20,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  /* font-family: var(--font-sans); */
 }
