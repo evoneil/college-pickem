@@ -105,7 +105,7 @@ export default function OverallLeaderboard() {
                   {isCurrentUser && ' (you)'}
                 </p>
               </div>
-              <div className="text-white font-bold italic text-xxl tracking-wide whitespace-nowrap">
+              <div className="text-white font-bold text-xxl tracking-wide whitespace-nowrap">
                 {u.total} PTS
               </div>
             </div>
