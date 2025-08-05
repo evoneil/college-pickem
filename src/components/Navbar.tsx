@@ -40,8 +40,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between relative z-50">
       {/* Logo */}
       <div className="flex items-center space-x-2">
-        <Image src="/logo.svg" alt="Logo" width={24} height={24} />
-        <span className="font-extrabold italic text-xl">THEO</span>
+        <img src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//theo-logo.svg" alt="THEO Logo" className="h-8"/>
       </div>
 
       {/* Desktop nav links */}
