@@ -59,75 +59,91 @@ function CurrentWeekPicks() {
     return pick.double_down && game && new Date(game.lock_time) <= new Date()
   })
 
-  useEffect(() => {
-    const init = async () => {
-      const id = await getCurrentWeek()
-      setCurrentWeekId(id)
+  const fetchData = async () => {
+    const id = await getCurrentWeek()
+    setCurrentWeekId(id)
 
-      const { data: sessionData } = await supabase.auth.getSession()
-      const uid = sessionData?.session?.user?.id ?? null
-      setUserId(uid)
-      if (!uid) return
+    const { data: sessionData } = await supabase.auth.getSession()
+    const uid = sessionData?.session?.user?.id ?? null
+    setUserId(uid)
+    if (!uid) return
 
-      const { data: weekData, error: weekError } = await supabase
-        .from('weeks')
-        .select('*')
-        .eq('id', id)
-        .single()
+    const { data: weekData, error: weekError } = await supabase
+      .from('weeks')
+      .select('*')
+      .eq('id', id)
+      .single()
 
-      if (weekError || !weekData) return
+    if (weekError || !weekData) return
 
-      const now = new Date()
-      const start = new Date(weekData.start_date)
-      const isLockedOut = now < start
-      setWeekLocked(isLockedOut)
-      if (isLockedOut) return
+    const now = new Date()
+    const start = new Date(weekData.start_date)
+    const isLockedOut = now < start
+    setWeekLocked(isLockedOut)
+    if (isLockedOut) return
 
-      const { data: gameData, error: gameError } = await supabase
-        .from('games')
-        .select(`
-          id,
-          home_team_id,
-          away_team_id,
-          kickoff_time,
-          lock_time,
-          difficulty,
-          home_team:home_team_id (id, name, short_name, logo_url, color),
-          away_team:away_team_id (id, name, short_name, logo_url, color)
-        `)
-        .eq('week', id)
+    const { data: gameData, error: gameError } = await supabase
+      .from('games')
+      .select(`
+      id,
+      home_team_id,
+      away_team_id,
+      kickoff_time,
+      lock_time,
+      difficulty,
+      home_team:home_team_id (id, name, short_name, logo_url, color),
+      away_team:away_team_id (id, name, short_name, logo_url, color)
+    `)
+      .eq('week', id)
 
-      if (gameError || !gameData) return
+    if (gameError || !gameData) return
 
-      const cleanedGames: Game[] = gameData.map((g: any) => ({
-        ...g,
-        home_team: Array.isArray(g.home_team) ? g.home_team[0] : g.home_team,
-        away_team: Array.isArray(g.away_team) ? g.away_team[0] : g.away_team,
+    const cleanedGames: Game[] = gameData.map((g: any) => ({
+      ...g,
+      home_team: Array.isArray(g.home_team) ? g.home_team[0] : g.home_team,
+      away_team: Array.isArray(g.away_team) ? g.away_team[0] : g.away_team,
+    }))
+
+    const sortedGames = cleanedGames.sort((a, b) => b.difficulty - a.difficulty)
+    setGames(sortedGames)
+
+    const gameIds = sortedGames.map((g) => g.id)
+    const { data: picksData } = await supabase
+      .from('picks')
+      .select('*')
+      .eq('user_id', uid)
+      .in('game_id', gameIds)
+
+    if (picksData) {
+      const formatted = picksData.map((p) => ({
+        game_id: p.game_id,
+        selected_team_id: p.selected_team_id,
+        double_down: p.double_down,
       }))
-
-      const sortedGames = cleanedGames.sort((a, b) => b.difficulty - a.difficulty)
-      setGames(sortedGames)
-
-      const gameIds = sortedGames.map((g) => g.id)
-      const { data: picksData } = await supabase
-        .from('picks')
-        .select('*')
-        .eq('user_id', uid)
-        .in('game_id', gameIds)
-
-      if (picksData) {
-        const formatted = picksData.map((p) => ({
-          game_id: p.game_id,
-          selected_team_id: p.selected_team_id,
-          double_down: p.double_down,
-        }))
-        setDraftPicks(formatted)
-        setOriginalPicks(formatted)
-      }
+      setDraftPicks(formatted)
+      setOriginalPicks(formatted)
     }
+  }
 
-    init()
+
+  useEffect(() => {
+    fetchData()
+
+    const interval = setInterval(() => {
+      fetchData()
+    }, 30000) // every 30 seconds
+
+    const onFocus = () => {
+      fetchData()
+    }
+    window.addEventListener('focus', onFocus)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('focus', onFocus)
+    }
   }, [])
+
 
   const updatePick = (game_id: string, selected_team_id: string) => {
     setDraftPicks((prev) => {
@@ -226,7 +242,7 @@ function CurrentWeekPicks() {
         </div>
       ) : (
         <>
-          <div className="sticky top-0 z-30 bg-black py-3">
+          <div className="sticky top-0 z-30 bg-[#0D0B14] py-3">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
               <h1 className="text-xl">Week {currentWeekId} Picks</h1>
               <button

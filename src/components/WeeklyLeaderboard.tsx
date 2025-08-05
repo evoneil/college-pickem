@@ -6,7 +6,7 @@ import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import clsx from 'clsx'
 
-const ENABLE_WEEK_FILTERING = false // Toggle this on/off to filter out future weeks
+const ENABLE_WEEK_FILTERING = true // Toggle this on/off to filter out future weeks
 
 type Team = {
   id: string
