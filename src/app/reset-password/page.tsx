@@ -31,7 +31,7 @@ export default function ResetPasswordPage() {
         onChange={(e) => setNewPassword(e.target.value)}
       />
       <button
-        className="w-full bg-green-600 hover:bg-green-500 py-2 rounded"
+        className="w-full bg-[#5C5BF0] hover:bg-[#7675ff] py-2 rounded"
         onClick={handleUpdate}
       >
         Update Password

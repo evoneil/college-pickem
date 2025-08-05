@@ -10,13 +10,30 @@ const dmSans = DM_Sans({
 })
 
 export const metadata = {
-  title: 'College Pick’em',
+  title: 'THEO Picks',
   description: 'Pick weekly college football games',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* Favicon for light mode */}
+        <link
+          rel="icon"
+          href="/favicon-light.svg"
+          type="image/svg+xml"
+          media="(prefers-color-scheme: light)"
+        />
+        {/* Favicon for dark mode */}
+        <link
+          rel="icon"
+          href="/favicon-dark.svg"
+          type="image/svg+xml"
+          media="(prefers-color-scheme: dark)"
+        />
+      </head>
       <body className={dmSans.variable}>
         <NavbarClient />
         {children}
