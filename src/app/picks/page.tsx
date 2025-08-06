@@ -22,6 +22,7 @@ type Game = {
   kickoff_time: string
   lock_time: string
   difficulty: number
+  cancelled: boolean
 }
 
 type PickDraft = {
@@ -85,14 +86,15 @@ function CurrentWeekPicks() {
     const { data: gameData, error: gameError } = await supabase
       .from('games')
       .select(`
-      id,
-      home_team_id,
-      away_team_id,
-      kickoff_time,
-      lock_time,
-      difficulty,
-      home_team:home_team_id (id, name, short_name, logo_url, color),
-      away_team:away_team_id (id, name, short_name, logo_url, color)
+     id,
+    home_team_id,
+    away_team_id,
+    kickoff_time,
+    lock_time,
+    difficulty,
+    cancelled,
+    home_team:home_team_id (id, name, short_name, logo_url, color),
+    away_team:away_team_id (id, name, short_name, logo_url, color)
     `)
       .eq('week', id)
 
@@ -266,6 +268,7 @@ function CurrentWeekPicks() {
               const selected_id = pick?.selected_team_id
               const isDoubleDown = pick?.double_down
               const isLocked = new Date() > new Date(game.lock_time)
+              const isCancelled = game.cancelled
 
               const date = new Date(game.kickoff_time)
               const dateStr = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
@@ -283,6 +286,18 @@ function CurrentWeekPicks() {
                     {dateStr}, {timeStr}
                   </div>
 
+                  {isCancelled && (
+                    <div className="flex items-center justify-center gap-2 bg-[#43202C] text-red-200 text-sm font-medium py-3 px-4 rounded-lg mb-2">
+                      <img
+                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/cancelled.svg"
+                        alt="Cancelled"
+                        className="w-4 h-4"
+                      />
+                      <span>This game was cancelled</span>
+                    </div>
+                  )}
+
+
                   {isLocked && (
                     <div className="flex items-center justify-center gap-2 bg-[#2D2B36] text-zinc-200 text-sm font-medium py-3 mb-4 px-4 rounded-lg mb-2">
                       <img
@@ -297,7 +312,7 @@ function CurrentWeekPicks() {
 
                   <div className="flex gap-2 mt-2">
                     {/* Away Team Button — only show if not locked, or picked, or no pick made */}
-                    {(!isLocked || !selected_id || selected_id === game.away_team.id) && (
+                    {!isCancelled && (!isLocked || !selected_id || selected_id === game.away_team.id) && (
                       <button
                         onClick={() => updatePick(game.id, game.away_team.id)}
                         disabled={isLocked}
@@ -340,7 +355,7 @@ function CurrentWeekPicks() {
                     )}
 
                     {/* Home Team Button — same logic */}
-                    {(!isLocked || !selected_id || selected_id === game.home_team.id) && (
+                    {!isCancelled && (!isLocked || !selected_id || selected_id === game.home_team.id) && (
                       <button
                         onClick={() => updatePick(game.id, game.home_team.id)}
                         disabled={isLocked}
@@ -382,30 +397,28 @@ function CurrentWeekPicks() {
                       </button>
                     )}
                   </div>
-                  {selected_id &&
-                    (
-                      (!isLocked && !doubleDownLocked) || isDoubleDown) && (
-                      <button
-                        onClick={() => toggleDoubleDown(game.id)}
-                        disabled={isLocked}
-                        className={clsx(
-                          'w-full text-center cursor-pointer mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
-                          isLocked && 'cursor-not-allowed',
-                          isDoubleDown
-                            ? 'bg-[#43151C] text-white border-[#CE152E]'
-                            : isLocked
-                              ? 'hidden' // locked but not doubled down — hide it
-                              : 'bg-[#24232B] text-gray-300 border-[#3f3f46]'
-                        )}
-                      >
-                        <img
-                          src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//doubledown.svg"
-                          alt="Double Down icon"
-                          className="w-4 h-4"
-                        />
-                        {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
-                      </button>
-                    )}
+                  {!isCancelled && selected_id && ((!isLocked && !doubleDownLocked) || isDoubleDown) && (
+                    <button
+                      onClick={() => toggleDoubleDown(game.id)}
+                      disabled={isLocked}
+                      className={clsx(
+                        'w-full text-center cursor-pointer mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
+                        isLocked && 'cursor-not-allowed',
+                        isDoubleDown
+                          ? 'bg-[#43151C] text-white border-[#CE152E]'
+                          : isLocked
+                            ? 'hidden' // locked but not doubled down — hide it
+                            : 'bg-[#24232B] text-gray-300 border-[#3f3f46]'
+                      )}
+                    >
+                      <img
+                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//doubledown.svg"
+                        alt="Double Down icon"
+                        className="w-4 h-4"
+                      />
+                      {isDoubleDown ? 'Doubled Down!!' : 'Double Down'}
+                    </button>
+                  )}
                 </div>
               )
             })}

@@ -6,7 +6,7 @@ export default function RulesPage() {
   return (
     <AuthGate>
       <main className="max-w-2xl mx-auto py-12 px-4">
-        <h1 className="text-4xl font-bold mb-8">Rules</h1>
+        <h1>Rules</h1>
 
         <section className="mb-6">
           <h2 className="text-2xl font-semibold mb-2">Picking Games</h2>

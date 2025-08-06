@@ -1,18 +1,19 @@
 import { supabase } from '@/lib/supabaseClient'
 
 export async function getUserScoreForWeek(userId: string, week: number): Promise<number> {
-  
-  // 1. Get all games from that week
+  // 1. Get all games from that week, including `cancelled`
   const { data: games } = await supabase
     .from('games')
-    .select('id, difficulty, winner_id')
+    .select('id, difficulty, winner_id, cancelled')
     .eq('week', week)
 
   if (!games) return 0
 
-  const gameIds = games.map(g => g.id)
+  // Filter out cancelled games
+  const validGames = games.filter(g => !g.cancelled)
+  const gameIds = validGames.map(g => g.id)
 
-  // 2. Get that user's picks for those games
+  // 2. Get that user's picks for those valid games
   const { data: picks } = await supabase
     .from('picks')
     .select('game_id, selected_team_id, double_down')
@@ -24,7 +25,7 @@ export async function getUserScoreForWeek(userId: string, week: number): Promise
   // 3. Calculate the score
   let score = 0
   for (const pick of picks) {
-    const game = games.find(g => g.id === pick.game_id)
+    const game = validGames.find(g => g.id === pick.game_id)
     if (!game || game.winner_id === null) continue // 🛠️ Skip unplayed games
 
     const correct = pick.selected_team_id === game.winner_id
