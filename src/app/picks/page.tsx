@@ -249,7 +249,7 @@ function CurrentWeekPicks() {
                 onClick={savePicks}
                 disabled={picksUnchanged}
                 className={clsx(
-                  'w-full md:w-auto px-6 py-3 rounded-lg transition-colors border text-s',
+                  'w-full cursor-pointer md:w-auto px-6 py-3 rounded-lg transition-colors border text-s',
                   picksUnchanged
                     ? 'bg-[#2C2A33] text-zinc-400 border-[#3f3f46] cursor-not-allowed'
                     : 'bg-[#212048] border-[#9996FF] text-white hover:bg-[#8574e0] active:bg-[#2E2C67]'
@@ -302,7 +302,7 @@ function CurrentWeekPicks() {
                         onClick={() => updatePick(game.id, game.away_team.id)}
                         disabled={isLocked}
                         className={clsx(
-                          'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
+                          'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold cursor-pointer text-white transition-all bg-[#24232B] overflow-hidden',
                           selected_id === game.away_team.id
                             ? 'flex-[2]'
                             : selected_id === game.home_team.id
@@ -345,7 +345,7 @@ function CurrentWeekPicks() {
                         onClick={() => updatePick(game.id, game.home_team.id)}
                         disabled={isLocked}
                         className={clsx(
-                          'relative flex items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
+                          'relative flex cursor-pointer items-center justify-center gap-2 rounded-md py-2 font-semibold text-white transition-all bg-[#24232B] overflow-hidden',
                           selected_id === game.home_team.id
                             ? 'flex-[2]'
                             : selected_id === game.away_team.id
@@ -389,7 +389,7 @@ function CurrentWeekPicks() {
                         onClick={() => toggleDoubleDown(game.id)}
                         disabled={isLocked}
                         className={clsx(
-                          'w-full text-center mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
+                          'w-full text-center cursor-pointer mt-2 py-2.5 border rounded-md text-s uppercase tracking-wide font-medium transition-all flex items-center justify-center gap-2',
                           isLocked && 'cursor-not-allowed',
                           isDoubleDown
                             ? 'bg-[#43151C] text-white border-[#CE152E]'
