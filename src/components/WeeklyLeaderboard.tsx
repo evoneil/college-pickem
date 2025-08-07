@@ -110,42 +110,27 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
 
       setGames(unwrappedGames.sort((a, b) => a.difficulty - b.difficulty))
 
-      const { data: userData } = await supabase.from('profiles').select('id, username')
-      if (!userData) return
+      // 🔄 Call the backend API for the leaderboard
+      const res = await fetch(`/api/leaderboard?week=${selectedWeekId}`)
+      const leaderboardData = await res.json()
 
-      const rows: UserRow[] = []
-
-      for (const user of userData) {
-        const { data: picksData } = await supabase
-          .from('picks')
-          .select('game_id, selected_team_id, double_down')
-          .eq('user_id', user.id)
-          .in('game_id', unwrappedGames.map((g) => g.id))
-
-        const score = await getUserScoreForWeek(user.id, selectedWeekId)
-
-        rows.push({
-          id: user.id,
-          username: user.username,
-          picks: picksData ?? [],
-          total: score,
-        })
-      }
-
-      const sortedByScore = rows.sort((a, b) => b.total - a.total)
-
+      // Reorder so current user is at the top
       const reordered =
         uid != null
           ? [
-            ...sortedByScore.filter((u) => u.id === uid),
-            ...sortedByScore.filter((u) => u.id !== uid),
+            ...leaderboardData.filter((u: UserRow) => u.id === uid),
+            ...leaderboardData.filter((u: UserRow) => u.id !== uid),
           ]
-          : sortedByScore
+          : leaderboardData
 
-      const maxScore = Math.max(...rows.map((u) => u.total))
+      const maxScore = Math.max(...leaderboardData.map((u: UserRow) => u.total))
 
       setUsers(reordered)
-      setMaxWeeklyScore(maxScore) // You'll add a state for this
+      setMaxWeeklyScore(maxScore)
+
+
+      const { data: userData } = await supabase.from('profiles').select('id, username')
+      if (!userData) return
 
 
       setUsers(reordered)
