@@ -15,11 +15,11 @@ export default function LoginPage() {
     setError(null)
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         setError(error.message)
       } else {
-        await checkUsernameAndRedirect()
+        await checkUsernameAndRedirect(data.user!.id)
       }
     } else {
       const { error } = await supabase.auth.signUp({
@@ -41,28 +41,22 @@ export default function LoginPage() {
     }
   }
 
-  const checkUsernameAndRedirect = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
+  const checkUsernameAndRedirect = async (userId: string) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('username')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single()
 
-    if (profile?.username) {
-      router.push('/picks')
-    } else {
-      router.push('/setup-username')
-    }
+    router.push(profile?.username ? '/picks' : '/setup-username')
   }
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F0E13] px-4 text-white">
       <div className="mb-10 flex flex-col items-center text-center">
-        <img src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics//theo-logo.svg" alt="THEO Logo" className="h-12 mb-4"/>
-        <p className="text-sm text-gray-400 mt-2">The divine right to pickem</p>
+        <img src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/theo-logo.svg" alt="THEO Logo" className="h-12 mb-4" />
+        <p className="text-sm text-gray-400 mt-2">The divine right to pick’em</p>
       </div>
 
       <div className="w-full max-w-sm bg-[#1B1A22] p-6 rounded-xl border border-[#2D2C36] shadow">
