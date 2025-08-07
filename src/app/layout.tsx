@@ -10,7 +10,7 @@ const dmSans = DM_Sans({
 })
 
 export const metadata = {
-  title: 'THEO Picks',
+  title: 'THEO Pick’em',
   description: 'Pick weekly college football games',
 }
 
