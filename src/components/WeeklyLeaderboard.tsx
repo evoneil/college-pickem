@@ -255,9 +255,9 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                             {(isCorrect || isIncorrect) && (
                               <div
                                 className={clsx(
-                                  'absolute rounded-full z-0',
+                                  'absolute rounded-full blur-md z-0',
                                   'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-                                  isCorrect && 'w-6 h-6 blur-md bg-[#5BFF92]',
+                                  isCorrect && 'w-7 h-7 bg-[#29FFAD]',
                                   isIncorrect && 'w-8 h-8 blur-md bg-[#FF1846]'
                                 )}
                               />
