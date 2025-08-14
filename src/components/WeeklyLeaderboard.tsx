@@ -114,14 +114,16 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
       const res = await fetch(`/api/leaderboard?week=${selectedWeekId}`)
       const leaderboardData = await res.json()
 
+      const sorted = leaderboardData.sort((a: UserRow, b: UserRow) => b.total - a.total)
+
       // Reorder so current user is at the top
       const reordered =
         uid != null
           ? [
-            ...leaderboardData.filter((u: UserRow) => u.id === uid),
-            ...leaderboardData.filter((u: UserRow) => u.id !== uid),
+            ...sorted.filter((u: UserRow) => u.id === uid),
+            ...sorted.filter((u: UserRow) => u.id !== uid),
           ]
-          : leaderboardData
+          : sorted
 
       const maxScore = Math.max(...leaderboardData.map((u: UserRow) => u.total))
 
