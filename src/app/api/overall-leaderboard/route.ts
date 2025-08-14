@@ -1,63 +1,119 @@
+// app/api/overall-leaderboard/route.ts
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@supabase/supabase-js'
+
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs' // keep secrets server-side
+
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(url, serviceKey, { auth: { persistSession: false } })
+
+type GameRow = {
+  id: string
+  winner_id: string | null
+  difficulty: number | null
+  cancelled: boolean | null
+}
+
+type PickWithGame = {
+  user_id: string
+  game_id: string
+  selected_team_id: string
+  double_down: boolean
+  games: GameRow | GameRow[] | null
+}
+
+type Row = {
+  id: string
+  username: string | null
+  total: number
+  correct: number
+  accuracy: number
+}
+
+function resolveGame(g: PickWithGame['games']): GameRow | null {
+  if (!g) return null
+  return Array.isArray(g) ? (g[0] ?? null) : g
+}
 
 export async function GET() {
-  // Fetch profiles
-  const { data: profiles } = await supabase
+  // users
+  const { data: profiles, error: profilesErr } = await supabase
     .from('profiles')
     .select('id, username')
-  if (!profiles) return NextResponse.json([])
 
-  // Fetch valid games
-  const { data: games } = await supabase
-    .from('games')
-    .select('id, winner_id, cancelled, difficulty')
-  const validGames = (games || []).filter(g => !g.cancelled && g.winner_id !== null)
-  const totalValidGames = validGames.length
+  if (profilesErr) {
+    return NextResponse.json({ error: profilesErr.message }, { status: 500 })
+  }
 
-  // Fetch all picks
-  const { data: picks } = await supabase
+  // picks + games (NOTE: we use `data` and then make `picks` an array)
+  const { data: picksData, error: picksErr } = await supabase
     .from('picks')
-    .select('user_id, game_id, selected_team_id, double_down')
+    .select(`
+      user_id,
+      game_id,
+      selected_team_id,
+      double_down,
+      games:game_id (
+        id,
+        winner_id,
+        difficulty,
+        cancelled
+      )
+    `)
 
-  // Build leaderboard
-  const rows = profiles.map(user => {
-    const userPicks = picks?.filter(p => p.user_id === user.id) || []
+  if (picksErr) {
+    return NextResponse.json({ error: picksErr.message }, { status: 500 })
+  }
 
-    let total = 0
-    let correctCount = 0
-    for (const pick of userPicks) {
-      const game = validGames.find(g => g.id === pick.game_id)
-      if (!game) continue
-      const correct = pick.selected_team_id === game.winner_id
-      if (correct) {
-        correctCount++
-        total += pick.double_down ? game.difficulty * 2 : game.difficulty
-      } else if (pick.double_down) {
-        total -= game.difficulty
-      }
+  const picks: PickWithGame[] = (picksData ?? []) as any
+
+  const scorePick = (p: PickWithGame): { pts: number; isCorrect: boolean } => {
+    const g = resolveGame(p.games)
+    if (!g) return { pts: 0, isCorrect: false }
+    if (g.cancelled) return { pts: 0, isCorrect: false }
+
+    const difficulty = Number(g.difficulty ?? 0) || 0
+    const isCorrect = !!g.winner_id && p.selected_team_id === g.winner_id
+
+    if (isCorrect) return { pts: p.double_down ? difficulty * 2 : difficulty, isCorrect }
+    return { pts: p.double_down ? -difficulty : 0, isCorrect }
+  }
+
+  const map: Record<string, Row> = {}
+  for (const prof of profiles ?? []) {
+    map[prof.id] = {
+      id: prof.id,
+      username: prof.username ?? 'Anonymous',
+      total: 0,
+      correct: 0,
+      accuracy: 0,
     }
+  }
 
-    const accuracy = totalValidGames > 0
-      ? Math.round((correctCount / totalValidGames) * 100)
-      : 0
+  for (const p of picks) {
+    if (!map[p.user_id]) continue
+    const { pts, isCorrect } = scorePick(p)
+    map[p.user_id].total += pts
+    if (isCorrect) map[p.user_id].correct += 1
+  }
 
-    return { ...user, total, correct: correctCount, accuracy }
-  })
+  // accuracy denominator: only games with a winner and not cancelled
+  const scoredByUser: Record<string, number> = {}
+  for (const p of picks) {
+    const g = resolveGame(p.games)
+    if (!g || g.cancelled || !g.winner_id) continue
+    scoredByUser[p.user_id] = (scoredByUser[p.user_id] ?? 0) + 1
+  }
 
-  // Sort & rank
-  const sorted = rows.sort((a, b) => (b.total - a.total) || (b.correct - a.correct))
-  let currentRank = 1
-  let lastPlayer = null as typeof sorted[0] | null
-  const ranked = sorted.map((p, i) => {
-    if (lastPlayer && p.total === lastPlayer.total && p.correct === lastPlayer.correct) {
-      return { ...p, rank: currentRank }
-    } else {
-      currentRank = i + 1
-      lastPlayer = p
-      return { ...p, rank: currentRank }
-    }
-  })
+  for (const u of Object.values(map)) {
+    const denom = scoredByUser[u.id] ?? 0
+    u.accuracy = denom > 0 ? u.correct / denom : 0
+  }
 
-  return NextResponse.json(ranked)
+  const rows = Object.values(map).sort((a, b) => b.total - a.total)
+  return NextResponse.json({ users: rows }, { status: 200 })
 }
