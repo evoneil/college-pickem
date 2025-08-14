@@ -8,8 +8,8 @@ type UserRow = {
   id: string
   username: string
   total: number
-  correct: number       // ✅ added
-  accuracy: number      // ✅ added
+  correct: number
+  accuracy: number
   rank: number
 }
 
@@ -47,7 +47,7 @@ export default function OverallLeaderboard() {
         if (!picks) continue
 
         let total = 0
-        let correctCount = 0 // ✅ added
+        let correctCount = 0
 
         for (const pick of picks) {
           const game = Array.isArray(pick.game) ? pick.game[0] : pick.game
@@ -57,7 +57,7 @@ export default function OverallLeaderboard() {
           const basePoints = game.difficulty || 0
 
           if (correct) {
-            correctCount += 1 // ✅ count correct picks
+            correctCount += 1
             total += pick.double_down ? basePoints * 2 : basePoints
           } else if (pick.double_down) {
             total -= basePoints
@@ -65,7 +65,7 @@ export default function OverallLeaderboard() {
         }
 
         const accuracy = totalValidGames > 0
-          ? Math.round((correctCount / totalValidGames) * 100) // ✅ calc accuracy
+          ? Math.round((correctCount / totalValidGames) * 100)
           : 0
 
         rows.push({
@@ -77,9 +77,30 @@ export default function OverallLeaderboard() {
         })
       }
 
-      const ranked = rows
-        .sort((a, b) => (b.total - a.total) || (b.correct - a.correct)) // ✅ tie-breaker by correct
-        .map((u, i) => ({ ...u, rank: i + 1 }))
+      // ✅ Sort by points, then correct picks
+      const sorted = rows.sort(
+        (a, b) => (b.total - a.total) || (b.correct - a.correct)
+      )
+
+      // ✅ Assign shared ranks for ties
+      let currentRank = 1
+      let lastPlayer: typeof sorted[0] | null = null
+
+      const ranked = sorted.map((player, index) => {
+        if (
+          lastPlayer &&
+          player.total === lastPlayer.total &&
+          player.correct === lastPlayer.correct
+        ) {
+          // Tie → same rank as last
+          return { ...player, rank: currentRank }
+        } else {
+          // New rank
+          currentRank = index + 1
+          lastPlayer = player
+          return { ...player, rank: currentRank }
+        }
+      })
 
       setUsers(ranked)
     }
@@ -130,7 +151,7 @@ export default function OverallLeaderboard() {
                   {isCurrentUser && ' (you)'}
                 </p>
               </div>
-              {/* ✅ Display points and accuracy */}
+              {/* Points and accuracy */}
               <div className="flex items-center gap-4 text-white font-bold text-xxl tracking-wide whitespace-nowrap">
                 <span className="text-sm text-gray-400">{u.accuracy}% ACC</span>
                 <span>{u.total} PTS</span>
