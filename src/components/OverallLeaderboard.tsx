@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 import clsx from 'clsx'
 
 type UserRow = {
@@ -8,32 +9,37 @@ type UserRow = {
   username: string
   total: number
   correct: number
-  accuracy: number
+  accuracy: number // integer percent (0–100) from the API
   rank: number
 }
 
 export default function OverallLeaderboard() {
   const [users, setUsers] = useState<UserRow[]>([])
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const load = async () => {
-      // Get session to highlight current user
-      const sessionRes = await fetch('/api/auth/session')
-      if (sessionRes.ok) {
-        const sessionData = await sessionRes.json()
-        setCurrentUserId(sessionData?.user?.id ?? null)
-      }
+    (async () => {
+      try {
+        // keep your current-user highlight behavior
+        const { data: sessionData } = await supabase.auth.getSession()
+        const uid = sessionData?.session?.user?.id ?? null
+        setCurrentUserId(uid)
 
-      // Fetch precomputed leaderboard from API
-      const res = await fetch('/api/overall-leaderboard')
-      if (res.ok) {
-        const data = await res.json()
-        setUsers(data)
+        // fetch array from the API (no logic changes)
+        const res = await fetch('/api/overall-leaderboard', { cache: 'no-store' })
+        const json = await res.json().catch(() => null)
+        if (!res.ok || !Array.isArray(json)) {
+          throw new Error((json && json.error) || `HTTP ${res.status}`)
+        }
+        setUsers(json as UserRow[])
+      } catch (e: any) {
+        setError(e?.message ?? 'Failed to load leaderboard')
+      } finally {
+        setLoading(false)
       }
-    }
-
-    load()
+    })()
   }, [])
 
   const getRankStyle = (rank: number) => {
@@ -49,6 +55,18 @@ export default function OverallLeaderboard() {
     }
   }
 
+  if (loading) return <div className="p-6">Loading…</div>
+  if (error) {
+    return (
+      <div className="max-w-xl mx-auto p-6 text-red-500">
+        {error}{' '}
+        <a className="underline" href="/api/overall-leaderboard" target="_blank">
+          open API
+        </a>
+      </div>
+    )
+  }
+
   return (
     <div>
       <h1 className="text-xl mb-6">Overall Leaderboard</h1>
@@ -56,6 +74,7 @@ export default function OverallLeaderboard() {
       <div className="space-y-2">
         {users.map((u) => {
           const isCurrentUser = u.id === currentUserId
+
           return (
             <div
               key={u.id}
@@ -64,6 +83,7 @@ export default function OverallLeaderboard() {
                 isCurrentUser ? 'border-[#4D4B5B]' : 'border-[#24232B]'
               )}
             >
+              {/* Left: rank badge + username */}
               <div className="flex items-center gap-3">
                 <div
                   className={clsx(
@@ -78,6 +98,8 @@ export default function OverallLeaderboard() {
                   {isCurrentUser && ' (you)'}
                 </p>
               </div>
+
+              {/* Right: points & accuracy (exactly your old visual) */}
               <div className="flex items-center gap-4 text-white font-bold text-xxl tracking-wide whitespace-nowrap">
                 <span className="text-sm text-gray-400">{u.accuracy}% ACC</span>
                 <span>{u.total} PTS</span>
