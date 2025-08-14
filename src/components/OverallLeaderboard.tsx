@@ -8,6 +8,8 @@ type UserRow = {
   id: string
   username: string
   total: number
+  correct: number       // ✅ added
+  accuracy: number      // ✅ added
   rank: number
 }
 
@@ -24,6 +26,16 @@ export default function OverallLeaderboard() {
       const { data: userData } = await supabase.from('profiles').select('id, username')
       if (!userData) return
 
+      // ✅ Get all valid games (exclude cancelled, must have winner)
+      const { data: allGames } = await supabase
+        .from('games')
+        .select('id, winner_id, cancelled')
+
+      const validGames = (allGames || []).filter(
+        g => !g.cancelled && g.winner_id !== null
+      )
+      const totalValidGames = validGames.length
+
       const rows: Omit<UserRow, 'rank'>[] = []
 
       for (const user of userData) {
@@ -35,6 +47,8 @@ export default function OverallLeaderboard() {
         if (!picks) continue
 
         let total = 0
+        let correctCount = 0 // ✅ added
+
         for (const pick of picks) {
           const game = Array.isArray(pick.game) ? pick.game[0] : pick.game
           if (!game || !game.winner_id) continue
@@ -43,17 +57,28 @@ export default function OverallLeaderboard() {
           const basePoints = game.difficulty || 0
 
           if (correct) {
+            correctCount += 1 // ✅ count correct picks
             total += pick.double_down ? basePoints * 2 : basePoints
           } else if (pick.double_down) {
             total -= basePoints
           }
         }
 
-        rows.push({ id: user.id, username: user.username, total })
+        const accuracy = totalValidGames > 0
+          ? Math.round((correctCount / totalValidGames) * 100) // ✅ calc accuracy
+          : 0
+
+        rows.push({
+          id: user.id,
+          username: user.username,
+          total,
+          correct: correctCount,
+          accuracy
+        })
       }
 
       const ranked = rows
-        .sort((a, b) => b.total - a.total)
+        .sort((a, b) => (b.total - a.total) || (b.correct - a.correct)) // ✅ tie-breaker by correct
         .map((u, i) => ({ ...u, rank: i + 1 }))
 
       setUsers(ranked)
@@ -105,8 +130,10 @@ export default function OverallLeaderboard() {
                   {isCurrentUser && ' (you)'}
                 </p>
               </div>
-              <div className="text-white font-bold text-xxl tracking-wide whitespace-nowrap">
-                {u.total} PTS
+              {/* ✅ Display points and accuracy */}
+              <div className="flex items-center gap-4 text-white font-bold text-xxl tracking-wide whitespace-nowrap">
+                <span className="text-sm text-gray-400">{u.accuracy}% ACC</span>
+                <span>{u.total} PTS</span>
               </div>
             </div>
           )
