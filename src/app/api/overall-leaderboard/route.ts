@@ -1,15 +1,10 @@
 // app/api/overall-leaderboard/route.ts
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs' // keep secrets server-side
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabase = createClient(url, serviceKey, { auth: { persistSession: false } })
 
 type GameRow = {
   id: string
@@ -39,17 +34,35 @@ function resolveGame(g: PickWithGame['games']): GameRow | null {
   return Array.isArray(g) ? (g[0] ?? null) : g
 }
 
+// Lazy-init admin client at request time to avoid build-time crashes
+function getAdmin(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey) {
+    // Don't throw at module load — throw a clear runtime error
+    throw new Error('Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+  }
+  return createClient(url, serviceKey, { auth: { persistSession: false } })
+}
+
 export async function GET() {
+  let supabase: SupabaseClient
+  try {
+    supabase = getAdmin()
+  } catch (e: any) {
+    // Return 500 with helpful message instead of crashing build
+    return NextResponse.json({ error: e?.message ?? 'Supabase config error' }, { status: 500 })
+  }
+
   // users
   const { data: profiles, error: profilesErr } = await supabase
     .from('profiles')
     .select('id, username')
-
   if (profilesErr) {
     return NextResponse.json({ error: profilesErr.message }, { status: 500 })
   }
 
-  // picks + games (NOTE: we use `data` and then make `picks` an array)
+  // picks + games
   const { data: picksData, error: picksErr } = await supabase
     .from('picks')
     .select(`
@@ -64,7 +77,6 @@ export async function GET() {
         cancelled
       )
     `)
-
   if (picksErr) {
     return NextResponse.json({ error: picksErr.message }, { status: 500 })
   }
@@ -75,10 +87,8 @@ export async function GET() {
     const g = resolveGame(p.games)
     if (!g) return { pts: 0, isCorrect: false }
     if (g.cancelled) return { pts: 0, isCorrect: false }
-
     const difficulty = Number(g.difficulty ?? 0) || 0
     const isCorrect = !!g.winner_id && p.selected_team_id === g.winner_id
-
     if (isCorrect) return { pts: p.double_down ? difficulty * 2 : difficulty, isCorrect }
     return { pts: p.double_down ? -difficulty : 0, isCorrect }
   }
