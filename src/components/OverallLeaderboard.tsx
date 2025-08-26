@@ -79,8 +79,8 @@ export default function OverallLeaderboard() {
             <div
               key={u.id}
               className={clsx(
-                'rounded-xl pr-4 pl-2 py-2 flex border items-center justify-between transition',
-                isCurrentUser ? 'border-[#4D4B5B]' : 'border-[#24232B]'
+                'rounded-xl pr-4 pl-2 py-2 flex border bg-zinc-900 items-center justify-between transition',
+                isCurrentUser ? 'border-[#ffffff]' : 'border-[#3f3f46]'
               )}
             >
               {/* Left: rank badge + username */}

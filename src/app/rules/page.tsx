@@ -14,7 +14,7 @@ export default function RulesPage() {
             Each “week” runs Tuesday through Monday, aligning with the college football slate (e.g. Thursday openers, Saturday games, and rare Monday matchups).
           </p>
           <p className="text-base text-[#DEDEDE]">
-            The pick sheet for each week will be released by Tuesday at noon ET and must be completed prior to each game’s individual lock time, which occurs 15 minutes before kickoff.
+            The pick sheet for each week will be released by Tuesday at 8PM ET and must be completed prior to each game’s individual lock time, which occurs 15 minutes before kickoff.
           </p>
         </section>
 
