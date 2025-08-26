@@ -244,6 +244,9 @@ function CurrentWeekPicks() {
         </div>
       ) : (
         <>
+
+          
+                  
           <div className="sticky top-0 z-30 bg-[#0D0B14] py-3">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
               <h1 className="text-xl">Week {currentWeekId} Picks</h1>
@@ -261,6 +264,32 @@ function CurrentWeekPicks() {
               </button>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 gap-6">
+                    {games.length === 0 ? (
+                      <div className="text-center text-gray-400 py-12 text-lg">
+                        Picks not yet available. Picks release every Tuesday at 8PM ET.
+                      </div>
+                    ) : (
+                      games.map((game) => {
+                        const pick = draftPicks.find((p) => p.game_id === game.id)
+                        const selected_id = pick?.selected_team_id
+                        const isDoubleDown = pick?.double_down
+                        const isLocked = new Date() > new Date(game.lock_time)
+                        const isCancelled = game.cancelled
+
+                        const date = new Date(game.kickoff_time)
+                        const dateStr = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
+                        const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+
+                        return (
+                          <div key={game.id} className="bg-zinc-900 border border-[#3f3f46] rounded-xl p-4 space-y-2">
+                            {/* ... your existing game card code ... */}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
 
           <div className="grid grid-cols-1 gap-6">
             {games.map((game) => {
@@ -308,6 +337,8 @@ function CurrentWeekPicks() {
                       <span>Matchup has locked</span>
                     </div>
                   )}
+
+                
 
 
                   <div className="flex gap-2 mt-2">
