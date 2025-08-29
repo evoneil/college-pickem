@@ -270,11 +270,11 @@ function CurrentWeekPicks() {
 
                 return (
                   <div key={game.id} className="bg-zinc-900 border border-[#3f3f46] rounded-xl p-4 space-y-2">
-                    <div className="flex justify-between text-lg font-bold text-white">
-                      <span>
+                    <div className="flex justify-between items-start text-lg font-bold text-white gap-3">
+                      <span className="flex-1 min-w-0">
                         {game.away_team.name} @ {game.home_team.name}
                       </span>
-                      <span>{game.difficulty} PTS</span>
+                      <span className="whitespace-nowrap" >{game.difficulty} PTS</span>
                     </div>
                     <div className="text-s pb-2 text-gray-500">
                       {dateStr}, {timeStr}
