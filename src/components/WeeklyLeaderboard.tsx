@@ -199,7 +199,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                 >
                   <td
                     className={clsx(
-                      'sticky left-0 bg-zinc-900 px-3 py-2 border-b border-zinc-800 font-medium z-10',
+                      'sticky left-0 bg-zinc-900/60 backdrop-blur-xs px-3 py-2 border-b border-zinc-800 font-medium z-10',
                       u.total === maxWeeklyScore && 'text-[#FFBF47]'
                     )}
                   >
