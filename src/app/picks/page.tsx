@@ -253,7 +253,7 @@ function CurrentWeekPicks() {
 
           {games.length === 0 ? (
             <div className="text-center text-gray-400 py-12 text-lg">
-              Picks not yet available. Picks release every Tuesday evening around 8pm ET.
+              Picks not yet available. Picks release every Tuesday evening.
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
