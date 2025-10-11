@@ -180,7 +180,7 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                 >
                   <div className="font-semibold text-sm">{g.difficulty} PT</div>
                   <div className="text-xs text-gray-400 mt-0.5">
-                    {g.home_team.short_name} @ {g.away_team.short_name}
+                    {g.away_team.short_name} @ {g.home_team.short_name}
                   </div>
                 </th>
               ))}
