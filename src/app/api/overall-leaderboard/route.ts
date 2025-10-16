@@ -6,21 +6,6 @@ export const revalidate = 0
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-type GameRow = {
-  id: string
-  winner_id: string | null
-  difficulty: number | null
-  cancelled: boolean | null
-}
-
-type PickWithGame = {
-  user_id: string
-  game_id: string
-  selected_team_id: string
-  double_down: boolean
-  games: GameRow | GameRow[] | null
-}
-
 type OutRow = {
   id: string
   username: string
@@ -28,11 +13,6 @@ type OutRow = {
   correct: number
   accuracy: number // integer percent
   rank: number
-}
-
-function resolveGame(g: PickWithGame['games']): GameRow | null {
-  if (!g) return null
-  return Array.isArray(g) ? (g[0] ?? null) : g
 }
 
 function getClient(): SupabaseClient {
@@ -52,71 +32,50 @@ export async function GET() {
     return NextResponse.json({ error: e?.message ?? 'Supabase config error' }, { status: 500 })
   }
 
-  // Profiles (everyone appears, even with 0 picks)
-  const { data: profiles, error: pErr } = await supabase
+  // Fetch profiles with their weekly scores
+  const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, username')
-  if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 })
-
-  // Picks with joined games
-  const { data: picksData, error: xErr } = await supabase
-    .from('picks')
     .select(`
-      user_id,
-      game_id,
-      selected_team_id,
-      double_down,
-      games:game_id (
-        id,
-        winner_id,
-        difficulty,
-        cancelled
-      )
+      id,
+      username,
+      user_weekly_scores (
+  total_points,
+  correct_picks,
+  attempts,
+  total_games
+)
+
     `)
-  if (xErr) return NextResponse.json({ error: xErr.message }, { status: 500 })
 
-  const picks: PickWithGame[] = (picksData ?? []) as any
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Aggregate scores per user
-  const agg: Record<string, { id: string; username: string; total: number; correct: number; attempts: number }> = {}
-  for (const u of profiles ?? []) {
-    agg[u.id] = { id: u.id, username: u.username ?? 'Anonymous', total: 0, correct: 0, attempts: 0 }
+  // Aggregate total points, correct picks, attempts, and compute accuracy
+  const leaderboard = (profiles ?? []).map((u: any) => {
+  const weekly = u.user_weekly_scores ?? []
+  const totalPoints = weekly.reduce((sum: number, w: any) => sum + (w.total_points ?? 0), 0)
+  const correct = weekly.reduce((sum: number, w: any) => sum + (w.correct_picks ?? 0), 0)
+  const totalGames = weekly.reduce((sum: number, w: any) => sum + (w.total_games ?? 0), 0)
+  const accuracy = totalGames > 0 ? Math.round((correct / totalGames) * 100) : 0
+
+
+  return {
+    id: u.id,
+    username: u.username ?? 'Anonymous',
+    total: totalPoints,
+    correct,
+    accuracy
   }
+})
 
-  for (const p of picks) {
-    const bucket = agg[p.user_id]
-    if (!bucket) continue
-    const g = resolveGame(p.games)
-    if (!g || g.cancelled || !g.winner_id) continue
-    const diff = Number(g.difficulty ?? 0) || 0
-    const isCorrect = p.selected_team_id === g.winner_id
-    bucket.total += isCorrect ? (p.double_down ? diff * 2 : diff) : (p.double_down ? -diff : 0)
-    bucket.correct += isCorrect ? 1 : 0
-    bucket.attempts += 1
-  }
 
-  // Sort: points → correct picks
-  const sorted = Object.values(agg)
-    .map(r => ({
-      id: r.id,
-      username: r.username,
-      total: r.total,
-      correct: r.correct,
-      accuracy: r.attempts ? Math.round((r.correct / r.attempts) * 100) : 0
-    }))
-    .sort((a, b) => (b.total - a.total) || (b.correct - a.correct))
+  // Sort by total points, then correct picks
+  const sorted = leaderboard.sort((a, b) => (b.total - a.total) || (b.correct - a.correct))
 
-  // Assign competition ranks
+  // Assign ranks, handling ties
   let currentRank = 1
   let lastPlayer: typeof sorted[0] | null = null
-
   const ranked: OutRow[] = sorted.map((player, index) => {
-    if (
-      lastPlayer &&
-      player.total === lastPlayer.total &&
-      player.correct === lastPlayer.correct
-    ) {
-      // same rank as previous
+    if (lastPlayer && player.total === lastPlayer.total && player.correct === lastPlayer.correct) {
       return { ...player, rank: currentRank }
     } else {
       currentRank = index + 1

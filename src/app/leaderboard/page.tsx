@@ -40,7 +40,7 @@ export default function LeaderboardPage() {
           >
             Weekly
           </button>
-          {/* <button
+          <button
             onClick={() => setView('overall')}
             className={clsx(
               'px-4 py-2 rounded font-medium transition',
@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
             )}
           >
             Overall
-          </button> */}
+          </button>
         </div>
 
         {view === 'weekly' && (
