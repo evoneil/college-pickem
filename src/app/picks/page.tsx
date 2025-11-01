@@ -333,6 +333,13 @@ function CurrentWeekPicks() {
                               style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
                             />
                           )}
+                          {selected_id === game.away_team.id && game.away_team.logo_url && (
+                           <img
+                              src={game.away_team.logo_url}
+                              alt=""
+                              className="w-70 h-70 absolute mix-blend-overlay opacity-20"
+                            />
+                          )}
                           {game.away_team.logo_url && (
                             <img
                               src={game.away_team.logo_url}
@@ -370,10 +377,17 @@ function CurrentWeekPicks() {
                               : '#504E57'}`
                           }}
                         >
-                          {selected_id === game.home_team.id && (
+                          {selected_id === game.home_team.id &&  (
                             <div
                               className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
                               style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
+                            />
+                          )}
+                          {selected_id === game.home_team.id && game.home_team.logo_url && (
+                           <img
+                              src={game.home_team.logo_url}
+                              alt=""
+                              className="w-70 h-70 absolute mix-blend-overlay opacity-20"
                             />
                           )}
                           {game.home_team.logo_url && (
