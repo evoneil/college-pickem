@@ -6,7 +6,7 @@ import { getUserScoreForWeek } from '@/lib/getUserScoreForWeek'
 import { getCurrentWeek } from '@/lib/getCurrentWeek'
 import clsx from 'clsx'
 
-const ENABLE_WEEK_FILTERING = true // Toggle this on/off to filter out future weeks
+const ENABLE_WEEK_FILTERING = true // Toggles showing future weeks
 
 type Team = {
   id: string
@@ -205,6 +205,15 @@ export default function WeeklyLeaderboard({ weekId }: Props) {
                   >
                     {u.username}
                     {isCurrentUser && ' (you)'}
+
+                    {u.total === maxWeeklyScore && (
+                      <img
+                        src="https://ynlmvzuedasovzaesjeq.supabase.co/storage/v1/object/public/graphics/icons-weekWinner.svg"
+                        alt="Top Scorer"
+                        className="w-4 h-4 ml-1 inline-block"
+                      />
+                    )}
+
                   </td>
 
                   <td className="text-center px-3 py-2 border-b border-zinc-800 font-semibold">

@@ -23,6 +23,7 @@ type Game = {
   lock_time: string
   difficulty: number
   cancelled: boolean
+  winner_id: string | null
 }
 
 type PickDraft = {
@@ -86,6 +87,7 @@ function CurrentWeekPicks() {
      id,
     home_team_id,
     away_team_id,
+    winner_id,
     kickoff_time,
     lock_time,
     difficulty,
@@ -101,6 +103,7 @@ function CurrentWeekPicks() {
       ...g,
       home_team: Array.isArray(g.home_team) ? g.home_team[0] : g.home_team,
       away_team: Array.isArray(g.away_team) ? g.away_team[0] : g.away_team,
+      winner_id: g.winner_id ?? null,
     }))
 
     const sortedGames = cleanedGames.sort((a, b) => b.difficulty - a.difficulty)
@@ -263,14 +266,17 @@ function CurrentWeekPicks() {
                 const isDoubleDown = pick?.double_down
                 const isLocked = new Date() > new Date(game.lock_time)
                 const isCancelled = game.cancelled
+                const hasWinner = Boolean(game.winner_id)
+                const isCorrectPick = hasWinner && selected_id === game.winner_id
+                const isWrongPick = hasWinner && selected_id && selected_id !== game.winner_id
 
                 const date = new Date(game.kickoff_time)
                 const dateStr = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
                 const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 
                 return (
-                  <div key={game.id} className="bg-zinc-900 border border-[#3f3f46] rounded-xl p-4 space-y-2">
-                    <div className="flex justify-between items-start text-lg font-bold text-white gap-3">
+                  <div key={game.id} className={clsx('bg-zinc-900 border border-[#3f3f46] rounded-xl p-4 space-y-2')}>
+                    <div className={clsx('flex justify-between items-start text-lg font-bold gap-3', isCorrectPick && 'text-[#98FFC4]', isWrongPick && 'text-[#FFA0A1]')}>
                       <span className="flex-1 min-w-0">
                         {game.away_team.name} @ {game.home_team.name}
                       </span>
@@ -334,7 +340,7 @@ function CurrentWeekPicks() {
                             />
                           )}
                           {selected_id === game.away_team.id && game.away_team.logo_url && (
-                           <img
+                            <img
                               src={game.away_team.logo_url}
                               alt=""
                               className="w-70 h-70 absolute mix-blend-overlay opacity-20"
@@ -377,14 +383,14 @@ function CurrentWeekPicks() {
                               : '#504E57'}`
                           }}
                         >
-                          {selected_id === game.home_team.id &&  (
+                          {selected_id === game.home_team.id && (
                             <div
                               className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
                               style={{ background: 'linear-gradient(to top, #24232B, transparent)' }}
                             />
                           )}
                           {selected_id === game.home_team.id && game.home_team.logo_url && (
-                           <img
+                            <img
                               src={game.home_team.logo_url}
                               alt=""
                               className="w-70 h-70 absolute mix-blend-overlay opacity-20"
