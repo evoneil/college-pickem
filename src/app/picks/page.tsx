@@ -275,7 +275,8 @@ function CurrentWeekPicks() {
                 const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 
                 return (
-                  <div key={game.id} className={clsx('bg-[#14121C] border border-[#484454] rounded-xl p-4 space-y-2')}>
+                  <div key={game.id} className={clsx('bg-[#14121C] border border-[#484454] rounded-xl p-4 space-y-2', isCorrectPick && 'bg-[radial-gradient(ellipse_70%_50%_at_50%_-0%,_#1E4A31_0%,_#14121C_100%)] border border-[#98FFC4]', isWrongPick && 'bg-[radial-gradient(ellipse_70%_50%_at_50%_-0%,_#4A1E1E_0%,_#14121C_100%)] border border-[#FFA0A1]')}>
+
                     <div className={clsx('flex justify-between items-start text-lg font-bold gap-3', isCorrectPick && 'text-[#98FFC4]', isWrongPick && 'text-[#FFA0A1]')}>
                       <span className="flex-1 min-w-0">
                         {game.away_team.name} @ {game.home_team.name}
